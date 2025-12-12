@@ -23,25 +23,10 @@
     <i style="display:inline-block; height:100%; vertical-align:middle; width:0;"></i>
 <p>
 
-# 大厂内推
-
-为大家提供各个大厂渠道的内推。
-
-## 抖音
-
-欢迎将简历投递至我的邮箱：**dayugog@gmail.com**
-<br>
-不限年限，只要你敢投，我就敢帮你推，快上车~
-
-## 小米
-
-欢迎将简历投递至我的邮箱：**tigerbcode@gmail.com**
-<br>
-不限年限，只要你敢投，我就敢帮你推，快上车~
 
 # Star趋势
 
-[![Stargazers over time](https://starchart.cc/skr-shop/manuals.svg)](https://starchart.cc/skr-shop/manuals)
+[![Stargazers over time](https://starchart.cc/skr-shop/manuals.svg?background=%23000000&axis=%23ffffff&line=%232ff76e)](https://starchart.cc/skr-shop/manuals)
 
 # 架构
 
