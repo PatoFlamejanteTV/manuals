@@ -1,73 +1,73 @@
-# 由浅到深，入门搜索原理
+# Do Raso ao Fundo, Introdução aos Princípios de Busca
 
-本次带来电商搜索业务的介绍，电商搜索系列分为两篇文章：
+Esta vez trazemos uma introdução ao negócio de busca de e-commerce, a série de busca de e-commerce é dividida em dois artigos:
 
-- 电商搜索业务介绍
-- 由浅到深，入门搜索原理
+- Introdução ao Negócio de Busca em E-commerce
+- Do Raso ao Fundo, Introdução aos Princípios de Busca
 
-> 本文均以开源搜索引擎ES(Elasticsearch)为例，下文简称ES。
+> Este artigo toma como exemplo o mecanismo de busca de código aberto ES (Elasticsearch), doravante referido como ES.
 
-首先，本篇文章对于初次接触的同学来讲，涉及的概念会比较多，主要如下：
+Primeiro, para os alunos que estão entrando em contato pela primeira vez, este artigo envolverá muitos conceitos, principalmente os seguintes:
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-文档(Doc)|？
-词条(Term)|？
-倒排索引(Inverted Index)|？
-关键字(Query)|？
-召回(Recall)|？
-词频(tf:Term Frequency)|？
-逆文档率(idf:Inverse Document Frequency)|？
-粗排|？
-精排|？
+Documento (Doc)|?
+Termo (Term)|?
+Índice Invertido (Inverted Index)|?
+Palavra-chave (Query)|?
+Recall (Recall)|?
+Frequência do Termo (tf:Term Frequency)|?
+Frequência Inversa do Documento (idf:Inverse Document Frequency)|?
+Ordenação Bruta (Rough Sort/Coarse Rank)|?
+Ordenação Fina (Fine Sort/Fine Rank)|?
 
-本篇文章由简到繁入门搜索原理，并逐步揭开上面这些概念的面纱。本文结构如下：
+Este artigo introduz os princípios de busca do simples ao complexo e gradualmente revela esses conceitos. A estrutura deste artigo é a seguinte:
 
-- 搜索引擎ES的诞生
-- 简易版搜索过程
-    + 索引过程
-    + 查询过程
-- 进阶版搜索过程
-    + 索引过程
-        * 什么是文档(Doc)
-        * 什么是词条(Term)
-        * 什么是倒排索引(Inverted Index)
-        * 文档(Doc)分析
-            - 字符过滤器
-            - 分词器
-            - 分词过滤器
-        * 创建倒排索引
-    + 查询过程
-        * 关键字(Query)分析
-            - 字符过滤器
-            - 分词器
-            - 分词过滤器
-        * 召回(Recall)
-            - 什么是召回(Recall)
-        * 排序
-            + 什么是词频(tf:Term Frequency)
-            + 什么是逆文档率(idf:Inverse Document Frequency)
-            + 粗排/精排
-    + 搜索过程总结
-- 搜索引擎ES进阶
-    + 索引(名词)的基本结构
-    + 搜索引擎ES的逻辑结构
+- O nascimento do mecanismo de busca ES
+- Processo de busca versão simplificada
+    + Processo de indexação
+    + Processo de consulta
+- Processo de busca versão avançada
+    + Processo de indexação
+        * O que é um Documento (Doc)
+        * O que é um Termo (Term)
+        * O que é um Índice Invertido (Inverted Index)
+        * Análise de Documento (Doc)
+            - Filtro de caracteres
+            - Tokenizador (Analisador Léxico)
+            - Filtro de token
+        * Criar índice invertido
+    + Processo de consulta
+        * Análise de Palavra-chave (Query)
+            - Filtro de caracteres
+            - Tokenizador
+            - Filtro de token
+        * Recall (Recall)
+            - O que é Recall
+        * Ordenação (Ranking)
+            + O que é Frequência do Termo (tf:Term Frequency)
+            + O que é Frequência Inversa do Documento (idf:Inverse Document Frequency)
+            + Ordenação Bruta/Ordenação Fina
+    + Resumo do processo de busca
+- Mecanismo de busca ES avançado
+    + Estrutura básica do índice (substantivo)
+    + Estrutura lógica do mecanismo de busca ES
 
-## 搜索引擎ES的诞生
+## O nascimento do mecanismo de busca ES
 
-ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们可以发现`Lucene`具备如下能力：
+O ES nasceu de uma biblioteca JAVA de código aberto `Lucene`. Através da descrição do site oficial do `Lucene`, podemos descobrir que o `Lucene` possui as seguintes capacidades:
 
-- `Lucene`是一个JAVA库
-- `Lucene`实现了拼写检查
-- `Lucene`实现了命中字符高亮
-- `Lucene`实现了分析、分词功能
+- `Lucene` é uma biblioteca JAVA
+- `Lucene` implementa verificação ortográfica
+- `Lucene` implementa destaque de caracteres correspondentes (highlighting)
+- `Lucene` implementa funções de análise e tokenização
 
-`Lucene`不具备的能力：
+Capacidades que o `Lucene` não possui:
 
-- 分布式
-- 高可用
-- 开箱即用
-- 等等
+- Distribuído
+- Alta disponibilidade
+- Pronto para uso (Out of the box)
+- Etc.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220215203335.png" data-lightbox="roadtrip">
@@ -75,7 +75,7 @@ ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们�
     </a>
 </p>
 
-所以多年之前名叫`Shay Banon`的开发者，通过`Lucene`实现了一个高可用的开源分布式搜索引擎`Elasticsearch`。
+Então, muitos anos atrás, um desenvolvedor chamado `Shay Banon` implementou um mecanismo de busca distribuído de código aberto e alta disponibilidade `Elasticsearch` através do `Lucene`.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220215203346.png" data-lightbox="roadtrip">
@@ -83,14 +83,14 @@ ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们�
     </a>
 </p>
 
-常见的搜索功能都是基于「搜索引擎」实现的，接着我们来看看**简易版搜索过程**。
+As funções de busca comuns são baseadas em "mecanismos de busca". Em seguida, vamos ver o **processo de busca versão simplificada**.
 
-## 简易版搜索过程
+## Processo de busca versão simplificada
 
-简易版搜索过程如下：
+O processo de busca versão simplificada é o seguinte:
 
-- 第①步：索引过程，需要被搜索的源数据被索引(动词)到搜索引擎中，并建立索引(名词)。
-- 第②步：查询过程，用户输入关键字(Query)，搜索引擎分析Query并返回查询结果。
+- Passo ①: Processo de indexação, os dados de origem que precisam ser pesquisados são indexados (verbo) no mecanismo de busca, e um índice (substantivo) é estabelecido.
+- Passo ②: Processo de consulta, o usuário insere uma palavra-chave (Query), o mecanismo de busca analisa a Query e retorna o resultado da consulta.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220306221130.png" data-lightbox="roadtrip">
@@ -98,9 +98,9 @@ ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们�
     </a>
 </p>
 
-## 进阶版搜索过程
+## Processo de busca versão avançada
 
-### 索引过程
+### Processo de indexação
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129183509.png" data-lightbox="roadtrip">
@@ -108,9 +108,9 @@ ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们�
     </a>
 </p>
 
-#### 什么是文档(Doc)
+#### O que é um Documento (Doc)
 
-举个栗子，比如《电商设计手册 | SkrShop》网页内容需要被搜索到，那这页网页的全部内容就称之为一个`文档Doc`。
+Por exemplo, se o conteúdo da página da web "Manual de Design de E-commerce | SkrShop" precisa ser pesquisado, todo o conteúdo desta página da web é chamado de um `Documento Doc`.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220222131248.png" data-lightbox="roadtrip">
@@ -118,114 +118,114 @@ ES诞生于一个开源的JAVA库`Lucene`。通过`Lucene`官网的描述我们�
     </a>
 </p>
 
-`文档Doc`内容如下：
+O conteúdo do `Documento Doc` é o seguinte:
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>电商设计手册 | SkrShop</title>
+  <title>Manual de Design de E-commerce | SkrShop</title>
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="应该是最全、最细致、最落地的电商系统设计手册">
-  <!-- 省略...... -->
-  <p>秒杀是电商的一种营销手段</p>
-  <!-- 省略...... -->
+  <meta name="description" content="Deve ser o manual de design de sistema de e-commerce mais completo, detalhado e prático">
+  <!-- Omitido... -->
+  <p>Seckill é um meio de marketing de e-commerce</p>
+  <!-- Omitido... -->
 ```
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-文档(doc)|需要被搜索的文本内容，可以是某个商品详细信息、某个网页信息等等文本。
+Documento (doc)|O conteúdo de texto que precisa ser pesquisado, pode ser informações detalhadas de um produto, informações de uma página da web, etc.
 
-#### 什么是词条(Term)
+#### O que é um Termo (Term)
 
-继续以上文的`文档Doc`为例。为了简化对`词条(Term)`的理解，把上述`文档Doc`的内容简化为一句话`秒杀是电商的一种营销手段`。
+Continue com o `Documento Doc` acima como exemplo. Para simplificar o entendimento de `Termo (Term)`, simplifique o conteúdo do `Documento Doc` acima para uma frase `Seckill é um meio de marketing de e-commerce`.
 
-`词条(Term)`就是`文档Doc`经过分词处理得到的词条结果集合。比如`秒杀是电商的一种营销手段`被中文分词之后得到：
+`Termo (Term)` é o conjunto de resultados de termos obtidos após o processamento de tokenização do `Documento Doc`. Por exemplo, `Seckill é um meio de marketing de e-commerce` após a tokenização em chinês (ou outra língua) resulta em:
 
 ```
-秒杀 / 是 / 电商 / 的 / 一种 / 营销 / 手段
+Seckill / é / e-commerce / de / um / marketing / meio
 ```
 
-秒杀、是、电商、的、一种、营销、手段分别称之为`词条(Term)`，该集合称之为`Terms`。
+Seckill, é, e-commerce, de, um, marketing, meio são chamados respectivamente de `Termo (Term)`, e esse conjunto é chamado de `Terms`.
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-词条(Term)|被搜索的文本Doc被分词器拆解成N个标准的语句。
+Termo (Term)|O texto Doc pesquisado é desmontado em N frases padrão pelo tokenizador.
 
-#### 什么是倒排索引(Inverted Index)
+#### O que é um Índice Invertido (Inverted Index)
 
-「倒排索引」是索引(动词)源数据时，创建的索引(名词)的具体实现。
+"Índice Invertido" é a implementação específica do índice (substantivo) criado ao indexar (verbo) os dados de origem.
 
-我们以如下文档(Doc)为例，解释倒排索引：
+Usamos o seguinte Documento (Doc) como exemplo para explicar o índice invertido:
 
-文档ID|文档内容(Doc)
+ID do Documento|Conteúdo do Documento (Doc)
 ------|------
-1|电商设计手册SkrShop
-2|秒杀是电商的一种营销手段
-3|购物车是电商购买流程最重要的一步
+1|Manual de Design de E-commerce SkrShop
+2|Seckill é um meio de marketing de e-commerce
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce
 
-分词器：文档(Doc)拆解为多个独立词条(Doc -> Terms)。
+Tokenizador: Documento (Doc) desmontado em múltiplos termos independentes (Doc -> Terms).
 
-开源中文分词器：
+Tokenizadores chineses de código aberto:
 
 - IK Analyzer
 - jieba
-- 等
+- Etc.
 
-以jieba分词器在线演示为例：https://app.gumble.pw/jiebademo/
+Tomando a demonstração online do tokenizador jieba como exemplo: https://app.gumble.pw/jiebademo/
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)
 ------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop
-2|秒杀是电商的一种营销手段|秒杀 / 是 / 电商 / 的 / 一种 / 营销 / 手段
-3|购物车是电商购买流程最重要的一步|购物车 / 是 / 电商 / 购买 / 流程 / 最 / 重要 / 的 / 一步
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop
+2|Seckill é um meio de marketing de e-commerce|Seckill / é / E-commerce / de / um / marketing / meio
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / é / E-commerce / compra / processo / mais / importante / de / uma etapa
 
-每个词条对应的文档ID如下：
+Os IDs de documentos correspondentes a cada termo são os seguintes:
 
-词条|文档IDs
+Termo|IDs de Documentos
 ------|------
-电商|1、2、3
-设计|1
-手册|1
+E-commerce|1, 2, 3
+Design|1
+Manual|1
 SkrShop|1
-秒杀|2
-是|2、3
-的|2、3
-一种|2
-营销|2
-手段|2
-购物车|3
-购买|3
-流程|3
-最|3
-重要|3
-一步|3
+Seckill|2
+é|2, 3
+de|2, 3
+um|2
+marketing|2
+meio|2
+Carrinho de compras|3
+compra|3
+processo|3
+mais|3
+importante|3
+uma etapa|3
 
-以上就是建立倒排索引的基本过程。
+Este é o processo básico de criação de um índice invertido.
 
-完成倒排索引建立之后，模拟搜索过程，假设：
+Após a criação do índice invertido, simulamos o processo de busca, supondo:
 
-- 搜索`电商`，能快速找到文档1、2、3
-- 搜索`营销`，能快速找到文档2
+- Buscar `E-commerce`, pode encontrar rapidamente os documentos 1, 2, 3
+- Buscar `Marketing`, pode encontrar rapidamente o documento 2
 
-(这个过程叫做「召回」)
+(Este processo é chamado de "Recall")
 
-以上就是「倒排索引」的概念。
+Isso é o conceito de "Índice Invertido".
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-倒排索引(Inverted Index)|索引(动词)源数据时，创建的索引(名词)的具体实现。
+Índice Invertido (Inverted Index)|A implementação específica do índice (substantivo) criado ao indexar (verbo) os dados de origem.
 
-#### 文档(Doc)分析
+#### Análise de Documento (Doc)
 
-分析就是标准化文档(Doc)文本的过程，以及把文档(Doc)转换成标准化词条(Term)的过程。搜索引擎ES分析过程的实现依赖于分析器。
+A análise é o processo de padronização do texto do Documento (Doc) e o processo de conversão do Documento (Doc) em Termos (Term) padronizados. A implementação do processo de análise do mecanismo de busca ES depende do analisador.
 
-分析器基本组成：
+Composição básica do analisador:
 
-- 字符过滤器
-- 分词器
-- 分词过滤器
+- Filtro de caracteres
+- Tokenizador
+- Filtro de token
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129183541.png" data-lightbox="roadtrip">
@@ -233,11 +233,11 @@ SkrShop|1
     </a>
 </p>
 
-##### 字符过滤器
+##### Filtro de caracteres
 
-> 一个分析器对应一个字符过滤器。
+> Um analisador corresponde a um filtro de caracteres.
 
-格式化为标准文本(text -> standard text)，例如去掉文本中的html标签。
+Formata para texto padrão (text -> standard text), por exemplo, removendo tags html do texto.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129183701.png" data-lightbox="roadtrip">
@@ -245,16 +245,16 @@ SkrShop|1
     </a>
 </p>
 
-比如`<p>电商设计手册SkrShop</p>`--->`电商设计手册SkrShop`
+Por exemplo `<p>Manual de Design de E-commerce SkrShop</p>` ---> `Manual de Design de E-commerce SkrShop`
 
-##### 分词器
+##### Tokenizador
 
-> 一个分析器对应一个分词器。
+> Um analisador corresponde a um tokenizador.
 
-文档(Doc)拆解为多个独立词条(doc -> terms)的过程。举个例子：
-比如`电商设计手册SkrShop`--->`电商 / 设计 / 手册 / SkrShop`
+O processo de desmontar o Documento (Doc) em múltiplos termos independentes (doc -> terms). Por exemplo:
+Por exemplo `Manual de Design de E-commerce SkrShop` ---> `E-commerce / Design / Manual / SkrShop`
 
-这里还需要提到的是**自定义词库**：原始词库不具备的词汇，比如最近新产生的网络词汇。
+O que também precisa ser mencionado aqui é o **Dicionário Personalizado**: vocabulário que o dicionário original não possui, como novos vocabulários da internet criados recentemente.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129183714.png" data-lightbox="roadtrip">
@@ -262,17 +262,17 @@ SkrShop|1
     </a>
 </p>
 
-##### 分词过滤器
+##### Filtro de token
 
-> 一个分析器对应N个分词过滤器。
+> Um analisador corresponde a N filtros de token.
 
-- 统一转小写
-- 近义词转换
-- 停用词
-- 提取词干
-- 纠错
-- 自动补全
-- 等等...
+- Conversão unificada para minúsculas
+- Conversão de sinônimos
+- Stop words (Palavras de parada)
+- Extração de radical (Stemming)
+- Correção de erros
+- Autocompletar
+- Etc...
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220215205418.png" data-lightbox="roadtrip">
@@ -280,18 +280,18 @@ SkrShop|1
     </a>
 </p>
 
-分词过滤器|示例
+Filtro de token|Exemplo
 ------|------
-统一转小写|适用于英文等。比如统一把英文字母转换为小写，例`Word -> word`
-近义词转换|适用于各语言。例`宽敞 -> 宽阔`
-停用词|适用于各语言。去除含义宽泛不具备代表性的词语和其他人工指定停用的词语，例`的`、`是`。中文停用词库：https://github.com/goto456/stopwords
-提取词干|适用于英文等。例`words -> word`
-纠错|适用于各语言。例`宽肠 -> 宽敞`
-自动补全|适用于各语言。
+Conversão unificada para minúsculas|Adequado para inglês, etc. Por exemplo, converter letras inglesas para minúsculas, ex `Word -> word`
+Conversão de sinônimos|Adequado para vários idiomas. Ex `espaçoso -> amplo`
+Stop words|Adequado para vários idiomas. Remover palavras com significado amplo e não representativo e outras palavras designadas manualmente para parar, ex `de`, `é`. Dicionário de stop words em chinês: https://github.com/goto456/stopwords
+Extração de radical|Adequado para inglês, etc. Ex `words -> word`
+Correção de erros|Adequado para vários idiomas. Ex `espaçoso -> espaçoso (corrigindo grafia)`
+Autocompletar|Adequado para vários idiomas.
 
-#### 索引过程总结
+#### Resumo do processo de indexação
 
-### 查询过程
+### Processo de consulta
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220215205523.png" data-lightbox="roadtrip">
@@ -299,19 +299,19 @@ SkrShop|1
     </a>
 </p>
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-关键字(Query)|发起搜索是用户输入的关键字
+Palavra-chave (Query)|A palavra-chave inserida pelo usuário ao iniciar a busca
 
-#### 关键字(Query)分析
+#### Análise de Palavra-chave (Query)
 
-关键字(Query)同样需要经过`分析器`，且和文档索引过程是相同的`分析器`。
+A Palavra-chave (Query) também precisa passar pelo `analisador`, e é o mesmo `analisador` do processo de indexação de documentos.
 
-相同分析器：
+Mesmo analisador:
 
-- 相同字符过滤器
-- 相同分词器
-- 相同分词过滤器
+- Mesmo filtro de caracteres
+- Mesmo tokenizador
+- Mesmo filtro de token
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220220211920.png" data-lightbox="roadtrip">
@@ -319,46 +319,46 @@ SkrShop|1
     </a>
 </p>
 
-分词器：
+Tokenizador:
 
-关键字(Query)|中文分词结果(Terms)
+Palavra-chave (Query)|Resultado da Tokenização (Terms)
 ------|------
-秒杀系统的设计|秒杀 / 系统 / 的 / 设计
+Design do sistema de seckill|Seckill / sistema / de / design
 
-|词条(Terms)|
+|Termo (Terms)|
 |------|
-|秒杀|
-|系统|
-|的|
-|设计|
+|Seckill|
+|sistema|
+|de|
+|design|
 
-分词过滤器：
+Filtro de token:
 
-此处以停用词分词过滤器为例讲解分词过滤器的过程，本文使用的停用词库示例：https://github.com/goto456/stopwords/blob/master/cn_stopwords.txt
+Aqui tomamos o filtro de token de stop words como exemplo para explicar o processo do filtro de token. Exemplo de dicionário de stop words usado neste artigo: https://github.com/goto456/stopwords/blob/master/cn_stopwords.txt
 
-得到去除了停用词`的`之后的词条(Terms)集合：
+Conjunto de termos (Terms) obtido após a remoção da stop word `de`:
 
-|词条(Terms)|
+|Termo (Terms)|
 |------|
-|秒杀|
-|系统|
-|设计|
+|Seckill|
+|sistema|
+|design|
 
-#### 召回(Recall)
+#### Recall (Recall)
 
-##### 什么是召回(Recall)
+##### O que é Recall
 
-使用上文的文档内容以及文档分词结果：
+Usando o conteúdo do documento e o resultado da tokenização do documento acima:
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)
 ------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop
-2|秒杀是电商的一种营销手段|秒杀 / 是 / 电商 / 的 / 一种 / 营销 / 手段
-3|购物车是电商购买流程最重要的一步|购物车 / 是 / 电商 / 购买 / 流程 / 最 / 重要 / 的 / 一步
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop
+2|Seckill é um meio de marketing de e-commerce|Seckill / é / E-commerce / de / um / marketing / meio
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / é / E-commerce / compra / processo / mais / importante / de / uma etapa
 
-进一步使用分词过滤器过滤分词结果，以相同的停用词分词过滤器为例。本文使用的停用词库示例：https://github.com/goto456/stopwords/blob/master/cn_stopwords.txt
+Usando ainda o filtro de token para filtrar os resultados da tokenização, tomando o mesmo filtro de token de stop words como exemplo. Exemplo de dicionário de stop words usado neste artigo: https://github.com/goto456/stopwords/blob/master/cn_stopwords.txt
 
-比如命中了停用词`是`：
+Por exemplo, acertou a stop word `é`:
   
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220302203921.png" data-lightbox="roadtrip">
@@ -366,169 +366,169 @@ SkrShop|1
     </a>
 </p>
 
-经过停用词分词过滤器之后的结果：
+Resultado após passar pelo filtro de token de stop words:
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)
 ------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop
-2|秒杀是电商的一种营销手段|秒杀 / 电商 / 一种 / 营销 / 手段
-3|购物车是电商购买流程最重要的一步|购物车 / 电商 / 购买 / 流程 / 重要 / 一步
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop
+2|Seckill é um meio de marketing de e-commerce|Seckill / E-commerce / um / marketing / meio
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / E-commerce / compra / processo / importante / uma etapa
 
-进一步得到倒排索引结构：
+Obtendo ainda a estrutura de índice invertido:
 
-词条|文档IDs
+Termo|IDs de Documentos
 ------|------
-电商|1、2、3
-设计|1
-手册|1
+E-commerce|1, 2, 3
+Design|1
+Manual|1
 SkrShop|1
-秒杀|2
-一种|2
-营销|2
-手段|2
-购物车|3
-购买|3
-流程|3
-重要|3
-一步|3
+Seckill|2
+um|2
+marketing|2
+meio|2
+Carrinho de compras|3
+compra|3
+processo|3
+importante|3
+uma etapa|3
 
-接着模拟搜索过程，假设用户搜索`秒杀系统的设计`：
+Em seguida, simulamos o processo de busca, supondo que o usuário pesquise `Design do sistema de seckill`:
 
-关键字(Query)|中文分词结果(Terms)
+Palavra-chave (Query)|Resultado da Tokenização (Terms)
 ------|------
-秒杀系统的设计|秒杀 / 系统 / 的 / 设计
+Design do sistema de seckill|Seckill / sistema / de / design
 
-|词条(Terms)|
+|Termo (Terms)|
 |------|
-|秒杀|
-|系统|
-|的|
-|设计|
+|Seckill|
+|sistema|
+|de|
+|design|
 
-分词过滤器，使用同上过程的`停用词分词过滤器`为例，得到去除了停用词`的`之后的词条(Terms)集合，称之为关键字(Query)的词条集合：
+Filtro de token, usando o mesmo `filtro de token de stop words` do processo acima como exemplo, obtém-se o conjunto de termos (Terms) após a remoção da stop word `de`, chamado de conjunto de termos da Palavra-chave (Query):
 
-|词条(Terms)|
+|Termo (Terms)|
 |------|
-|秒杀|
-|系统|
-|设计|
+|Seckill|
+|sistema|
+|design|
 
-- 关键字(Query)的词条`秒杀`，通过上述倒排索引可以很容易找到`文档2`
-- 关键字(Query)的词条`系统`，通过上述倒排索引没有找到任何文档
-- 关键字(Query)的词条`设计`，通过上述倒排索引可以很容易找到`文档1`
+- O termo `Seckill` da Palavra-chave (Query), através do índice invertido acima, pode-se encontrar facilmente o `Documento 2`
+- O termo `sistema` da Palavra-chave (Query), através do índice invertido acima, não encontrou nenhum documento
+- O termo `design` da Palavra-chave (Query), através do índice invertido acima, pode-se encontrar facilmente o `Documento 1`
 
-这样用户搜索`秒杀系统的设计`就找到了如下文档：
+Assim, a pesquisa do usuário por `Design do sistema de seckill` encontrou os seguintes documentos:
 
-- `文档2`：秒杀是电商的一种营销手段
-- `文档1`：电商设计手册SkrShop
+- `Documento 2`: Seckill é um meio de marketing de e-commerce
+- `Documento 1`: Manual de Design de E-commerce SkrShop
 
-以上过程就是`召回`。
+O processo acima é `Recall`.
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-召回(Recall)|搜索引擎利用倒排索引，通过词条获取相关文档的过程。
+Recall (Recall)|O processo pelo qual o mecanismo de busca usa o índice invertido para obter documentos relevantes através de termos.
 
-上述召回过程，用户通过搜索`秒杀系统的设计`找到了文档1、2。
+No processo de recall acima, o usuário encontrou os documentos 1 e 2 pesquisando `Design do sistema de seckill`.
 
 ```
-补充：以上基于倒排索引的文本召回方式。除此之外还有基于相同类目、其他相似属性的召回方式，以及基于深度学习的向量召回。
+Complemento: O acima é baseado no método de recall de texto de índice invertido. Além disso, existem métodos de recall baseados na mesma categoria, outros atributos semelhantes, e recall de vetor baseado em aprendizado profundo.
 ```
 
-接着问题来了：
+Então vem a pergunta:
 
-> 召回的文档1、2，谁在前，谁在后的顺序怎么决定呢？
+> Documentos 1 e 2 recuperados, quem vem antes e quem vem depois, como a ordem é decidida?
 
-接着下文来讲搜索引擎排序的实现。
+A seguir, falaremos sobre a implementação da ordenação do mecanismo de busca.
 
-#### 排序
+#### Ordenação
 
-引入上面的问题：
+Introduzindo a pergunta acima:
 
-> 文档1、2，谁在前，谁在后的顺序怎么决定呢？
+> Documentos 1 e 2, quem vem antes e quem vem depois, como a ordem é decidida?
 
-答：文档的相关性决定的，搜索引擎会给文档的相关性进行打分score。通常决定这个分数score主要是两个指标：
+Resposta: Decidida pela relevância do documento, o mecanismo de busca pontuará (score) a relevância do documento. Geralmente, os dois principais indicadores que determinam essa pontuação score são:
 
-- 文档率：tf(Term Frequency)
-- 逆文档率：idf(Inverse Document Frequency)
+- Taxa de termo no documento: tf (Term Frequency)
+- Taxa inversa de documento: idf (Inverse Document Frequency)
 
-可以简单理解为相关性score = 文档率 * 逆文档率，相关性score的值越高排序越靠前，接着，我们分别看看相关概念的含义。
+Pode-se entender simplesmente que score de relevância = taxa de documento * taxa inversa de documento, quanto maior o valor do score de relevância, mais alta a classificação. Em seguida, vamos ver o significado dos conceitos relacionados separadamente.
 
-##### 什么是词频(tf:Term Frequency)
+##### O que é Frequência do Termo (tf:Term Frequency)
 
-还是使用上面的文档：
+Ainda usando os documentos acima:
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)
 ------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop
-2|秒杀是电商的一种营销手段|秒杀 / 电商 / 一种 / 营销 / 手段
-3|购物车是电商购买流程最重要的一步|购物车 / 电商 / 购买 / 流程 / 重要 / 一步
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop
+2|Seckill é um meio de marketing de e-commerce|Seckill / E-commerce / um / marketing / meio
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / E-commerce / compra / processo / importante / uma etapa
 
-这里我们以词条：`电商/秒杀`为例。
+Aqui tomamos os termos: `E-commerce/Seckill` como exemplo.
 
-词频的简单算法：词频 = 词条在单个文档出现的次数/文档总词条数，词频的值越大越相关，反之越不相关。
+Algoritmo simples de frequência do termo: Frequência do termo = número de vezes que o termo aparece em um único documento / número total de termos no documento. Quanto maior o valor da frequência do termo, mais relevante, caso contrário, menos relevante.
 
-比如，`秒杀`一词在文档1中出现的频率，以单个文档的全部词条为维度，我们简单的到了`秒杀`一词在各文档的词频：
+Por exemplo, a frequência da palavra `Seckill` no documento 1, tomando todos os termos de um único documento como dimensão, obtemos simplesmente a frequência da palavra `Seckill` em cada documento:
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)|词条在单个文档出现的次数|词频(秒杀)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)|Número de vezes que o termo aparece em um único documento|Frequência do Termo (Seckill)
 ------|------|------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop|0|0/4=0
-2|秒杀是电商的一种营销手段|秒杀 / 电商 / 一种 / 营销 / 手段|1|1/5=0.2
-3|购物车是电商购买流程最重要的一步|购物车 / 电商 / 购买 / 流程 / 重要 / 一步|0|0/6=0
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop|0|0/4=0
+2|Seckill é um meio de marketing de e-commerce|Seckill / E-commerce / um / marketing / meio|1|1/5=0.2
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / E-commerce / compra / processo / importante / uma etapa|0|0/6=0
 
-同理，我们简单的到了`电商`一词在各文档的词频：
+Da mesma forma, obtemos simplesmente a frequência da palavra `E-commerce` em cada documento:
 
-文档ID|文档内容(Doc)|中文分词结果(Terms)|词条在单个文档出现的次数|词频(电商)
+ID do Documento|Conteúdo do Documento (Doc)|Resultado da Tokenização (Terms)|Número de vezes que o termo aparece em um único documento|Frequência do Termo (E-commerce)
 ------|------|------|------|------
-1|电商设计手册SkrShop|电商 / 设计 / 手册 / SkrShop|1|1/4=0.25
-2|秒杀是电商的一种营销手段|秒杀 / 电商 / 一种 / 营销 / 手段|1|1/5=0.2
-3|购物车是电商购买流程最重要的一步|购物车 / 电商 / 购买 / 流程 / 重要 / 一步|1|1/6=0.167
+1|Manual de Design de E-commerce SkrShop|E-commerce / Design / Manual / SkrShop|1|1/4=0.25
+2|Seckill é um meio de marketing de e-commerce|Seckill / E-commerce / um / marketing / meio|1|1/5=0.2
+3|O carrinho de compras é a etapa mais importante do processo de compra de e-commerce|Carrinho de compras / E-commerce / compra / processo / importante / uma etapa|1|1/6=0.167
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-词频(tf:Term Frequency)|词条在单个文档出现的次数/文档总词条数
+Frequência do Termo (tf:Term Frequency)|Número de vezes que o termo aparece em um único documento / número total de termos no documento
 
-##### 什么是逆文档率(idf:Inverse Document Frequency)
+##### O que é Frequência Inversa do Documento (idf:Inverse Document Frequency)
 
-对于单个文档而言，词频越的值越相关。
+Para um único documento, quanto maior o valor da frequência do termo, mais relevante.
 
-> 思考个问题，如果某个词条在所有文档都出现，相关性越好还是越不好？
+> Pense em uma questão, se um determinado termo aparece em todos os documentos, a relevância é melhor ou pior?
 
 ```
-答：不好，对吧。
+Resposta: Pior, certo.
 ```
 
-这个就是文档率：`文档率 = 包含某个词条的文档数 / 所有文档数`，文档率值越大越不相关，反之相关。
+Essa é a taxa de documento: `Taxa de documento = Número de documentos contendo um determinado termo / Número total de documentos`, quanto maior o valor da taxa de documento, menos relevante, caso contrário, relevante.
 
-因为词频的值越大越相关，反之越不相关。为了保证和词频的逻辑一致，以及最终相关得分越高越相关，调整了文档率的算法，调换了分子分母：`所有文档数 / (包含某个词条的文档数 + 1)`加1保证分母不为零，这个就是`逆文档率`。
+Como quanto maior o valor da frequência do termo, mais relevante, e vice-versa. Para garantir a consistência com a lógica da frequência do termo e que quanto maior a pontuação de relevância final, mais relevante, o algoritmo da taxa de documento foi ajustado, trocando o numerador e o denominador: `Número total de documentos / (Número de documentos contendo um determinado termo + 1)`, adicionando 1 para garantir que o denominador não seja zero, esta é a `Frequência Inversa do Documento`.
 
-逆文档率 = `所有文档数 / (包含某个词条的文档数 + 1)`。
+Frequência Inversa do Documento = `Número total de documentos / (Número de documentos contendo um determinado termo + 1)`.
 
-但是呢，因为文档数往往特别大，上面的到的`逆文档率`的值会巨大无比，所以调整下公式，引入对数，降低值的大小，且让值变得平滑：
+No entanto, como o número de documentos é frequentemente muito grande, o valor da `Frequência Inversa do Documento` obtido acima será enorme, então a fórmula é ajustada introduzindo logaritmo para reduzir o tamanho do valor e torná-lo suave:
 
-`逆文档率 = log(所有文档数 / (包含某个词条的文档数 + 1))`
+`Frequência Inversa do Documento = log(Número total de documentos / (Número de documentos contendo um determinado termo + 1))`
 
 
-词条(Term)|逆文档率
+Termo (Term)|Frequência Inversa do Documento
 ------|------
-电商|log(3/(3+1))
-秒杀|log(3/(1+1))
+E-commerce|log(3/(3+1))
+Seckill|log(3/(1+1))
 
-最终就计算出每个文档分别对应每个Query词条的相关性score(tf/idf)：相关性score = 文档率 * 逆文档率。
+Finalmente, calcula-se a pontuação de relevância score (tf/idf) de cada documento correspondente a cada termo da Query: score de relevância = taxa de documento * taxa inversa de documento.
 
-##### 粗排/精排
+##### Ordenação Bruta/Ordenação Fina
 
-上面利用tf/idf分数(`相关性score = 文档率 * 逆文档率`)排序的结果只是对召回文档的初步排序，称之为`粗排`。
+O resultado da ordenação usando a pontuação tf/idf (`score de relevância = taxa de documento * taxa inversa de documento`) acima é apenas uma ordenação preliminar dos documentos recuperados (Recall), chamada de `Ordenação Bruta`.
 
-得到`粗排`的结果后，通常还会把文档按照实际业务的要求进行更精确的排序，比如通过`人工干预`增加一些文档的权重，使之排序更靠前，这个过程就是`精排`。
+Após obter o resultado da `Ordenação Bruta`, geralmente os documentos são ordenados com mais precisão de acordo com os requisitos reais do negócio, por exemplo, aumentando o peso de alguns documentos por meio de `intervenção manual`, fazendo com que fiquem melhor classificados, este processo é a `Ordenação Fina`.
 
-搜索名词概念|描述
+Conceito de Termo de Busca|Descrição
 ------|------
-粗排|利用tf/idf分数排序召回文档的过程
-精排|把粗排结果，按照实际业务的要求更加精确的排序等等
+Ordenação Bruta|O processo de ordenar documentos recuperados usando pontuações tf/idf
+Ordenação Fina|O processo de ordenar os resultados da ordenação bruta com mais precisão de acordo com os requisitos reais do negócio, etc.
 
-### 搜索过程总结
+### Resumo do processo de busca
 
-1. 索引过程：文档(Doc) -> 分析 -> 倒排索引。
+1. Processo de indexação: Documento (Doc) -> Análise -> Índice Invertido.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220306223101.png" data-lightbox="roadtrip">
@@ -536,7 +536,7 @@ SkrShop|1
     </a>
 </p>
 
-2. 查询过程：关键字(Query) -> 分析 -> 召回 -> 粗排 -> 精排。
+2. Processo de consulta: Palavra-chave (Query) -> Análise -> Recall -> Ordenação Bruta -> Ordenação Fina.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220309203114.png" data-lightbox="roadtrip">
@@ -544,14 +544,14 @@ SkrShop|1
     </a>
 </p>
 
-## 搜索引擎ES进阶
+## Mecanismo de busca ES avançado
 
-### 索引(名词)的基本结构
+### Estrutura básica do índice (substantivo)
 
-- 索引index
-    + 类型type：区分不同的文档数据结构类型
-        * 映射mapping：管理索引的属性，比如使用的分析器等等
-        * 文档doc：需要被搜索的具体文档
+- Índice (Index)
+    + Tipo (Type): Distinguir diferentes tipos de estrutura de dados de documentos
+        * Mapeamento (Mapping): Gerenciar as propriedades do índice, como o analisador usado, etc.
+        * Documento (Doc): O documento específico a ser pesquisado
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220308195018.png" data-lightbox="roadtrip">
@@ -559,7 +559,7 @@ SkrShop|1
     </a>
 </p>
 
-进一步完善搜索过程：加入更详细的索引(名词)结构
+Aperfeiçoando ainda mais o processo de busca: adicionando uma estrutura de índice (substantivo) mais detalhada
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220308194814.png" data-lightbox="roadtrip">
@@ -567,7 +567,7 @@ SkrShop|1
     </a>
 </p>
 
-### 搜索引擎ES的逻辑结构
+### Estrutura lógica do mecanismo de busca ES
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129191435.png" data-lightbox="roadtrip">

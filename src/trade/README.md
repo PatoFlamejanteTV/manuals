@@ -1,191 +1,191 @@
-# 交易中心
+# Centro de Transações
 
-## 常见第三方支付流程
-这几年的工作中一直与支付打交到，借着 [skr-shop](https://github.com/skr-shop/manuals) 这个项目来与大家一起分享探索一下支付系统该怎么设计、怎么做。我们先从支付的一些常见流程出发分析，找出这些支付的共性，抽象后再去探讨具体的数据库设计、代码结构设计。
+## Fluxo Comum de Pagamento de Terceiros
+Nos últimos anos de trabalho, tenho lidado constantemente com pagamentos. Aproveitando o projeto [skr-shop](https://github.com/skr-shop/manuals), gostaria de compartilhar e explorar com vocês como projetar e fazer um sistema de pagamento. Vamos começar analisando alguns fluxos de pagamento comuns, identificar os pontos em comum desses pagamentos e, após a abstração, discutir o design específico do banco de dados e o design da estrutura do código.
 
-相关项目：
+Projetos relacionados:
 
-- [PHP 版本的支付SDK](https://github.com/helei112g/payment)
-- [Go 版本的支付SDK-开发中](https://github.com/skr-shop/fool-pay)
+- [SDK de Pagamento versão PHP](https://github.com/helei112g/payment)
+- [SDK de Pagamento versão Go - Em desenvolvimento](https://github.com/skr-shop/fool-pay)
 
 
 
-> 支付整体而言的一个流程是：给第三方发起了一笔交易，用户通过第三方完成支付，第三方告诉我支付成功，我把用户购买的产品给用户。
+> O fluxo geral de pagamento é: iniciar uma transação para um terceiro, o usuário conclui o pagamento através do terceiro, o terceiro me informa que o pagamento foi bem-sucedido e eu entrego o produto comprado ao usuário.
 
 ![pay-1](https://dayutalk.cn/img/pay-1.jpg)
 
-看似简单的流程，这里边不同的支付机构却有不同的处理。下面以我接触过的一些支付来总结一下
+O fluxo parece simples, mas diferentes instituições de pagamento têm diferentes tratamentos. Abaixo, resumirei alguns pagamentos com os quais tive contato.
 
-### 国内支付
+### Pagamento Doméstico (China)
 
-国内的典型支付代表是：**支付宝**、**微信**、**银行**(以招商银行为例)，由于国内的支付都支持多种渠道的支付方式，为了描述简单，我们均以pc上的支付为例进行讲解。
+Os representantes típicos de pagamento doméstico são: **Alipay**, **WeChat**, **Banco** (tome o China Merchants Bank como exemplo). Como os pagamentos domésticos suportam vários canais de pagamento, para simplificar a descrição, explicaremos usando o pagamento no PC como exemplo.
 
-#### 支付宝
+#### Alipay
 
-支付宝的接入是我觉得最简单的一种支付。对于在PC上的支付能力，支付宝提供了【电脑支付】。当用户下单后，商户系统根据支付宝的规则构建好一个url，用户跳转到这个url后进入到支付宝的支付页面，然后完成支付流程。
+A integração do Alipay é a que considero mais simples. Para a capacidade de pagamento no PC, o Alipay fornece [Pagamento no Computador]. Após o usuário fazer o pedido, o sistema do comerciante constrói uma url de acordo com as regras do Alipay. O usuário salta para essa url e entra na página de pagamento do Alipay, completando o fluxo de pagamento.
 
-在支付成功后，支付宝会通过 **同步通知**、**异步通知** 两种方式告诉商户系统支付成功，并且两种通知方式的结果都是可信的，而且异步通知的消息延迟也非常短暂。
+Após o sucesso do pagamento, o Alipay informará o sistema do comerciante sobre o sucesso do pagamento através de dois métodos: **notificação síncrona** e **notificação assíncrona**. Os resultados de ambos os métodos de notificação são confiáveis, e o atraso da mensagem de notificação assíncrona também é muito curto.
 
-对于退款流程，支付宝支持全额、部分退款。并且能够根据商户的退款单号区分是否是同一笔退款进而避免了重复退款的可能。支付的退款是调用后同步返回结果，不会异步通知。
+Para o processo de reembolso, o Alipay suporta reembolso total e parcial. E pode distinguir se é o mesmo reembolso com base no número do pedido de reembolso do comerciante, evitando a possibilidade de reembolsos duplicados. O reembolso do pagamento retorna o resultado de forma síncrona após a chamada e não haverá notificação assíncrona.
 
-#### 微信支付
+#### WeChat Pay
 
-微信并没有提供真的PC支付能力，但是我们可以利用【扫码支付】来达成电脑支付的目的。扫码支付有两种模式，这里以模式二为例。
+O WeChat não fornece capacidade real de pagamento no PC, mas podemos usar o [Pagamento via Scan QR Code] para atingir o objetivo de pagamento no computador. Existem dois modos de pagamento via scan, aqui tomamos o modo dois como exemplo.
 
-微信调用下单接口获取到这个二维码链接，然后用户扫码后，进入支付流程。完成支付后微信会 **异步通知**，但是这里并没有 **同步通知**，因此前端页面只能通过定时轮训的方式检查这笔交易是否支付，直到查询到成功、或者用户主动关闭页面。
+O WeChat chama a interface de pedido para obter este link de código QR, e então o usuário escaneia o código para entrar no processo de pagamento. Após completar o pagamento, o WeChat enviará uma **notificação assíncrona**, mas não há **notificação síncrona** aqui. Portanto, a página frontend só pode verificar se a transação foi paga por meio de polling regular até que o sucesso seja consultado ou o usuário feche a página ativamente.
 
-退款流程与支付宝最大的不同是，有一个 **异步通知** 需要商户系统进行处理。
+A maior diferença entre o processo de reembolso e o Alipay é que há uma **notificação assíncrona** que precisa ser processada pelo sistema do comerciante.
 
-> 第一个不同点：
+> Primeira diferença:
 >
-> 1. 异步通知的接口需要处理多种不同类型的异步消息
+> 1. A interface de notificação assíncrona precisa lidar com vários tipos diferentes de mensagens assíncronas
 
-#### 招商银行
+#### China Merchants Bank
 
-随着在线支付在国内的蓬勃发展，各家银行也是不断推出自己的在线支付能力。其中的佼佼者当属 **招商银行**。大家经常用的滴滴上面就有该支付方式，可以体验一下。
+Com o desenvolvimento vigoroso do pagamento online na China, vários bancos também estão lançando constantemente suas próprias capacidades de pagamento online. O destaque entre eles é o **China Merchants Bank**. O Didi, que todos usam frequentemente, tem esse método de pagamento, você pode experimentar.
 
-招商支付使用的是银行卡，因此首次用户必须进行绑卡。因此这里可能就多了一个流程，首先得记录用户是否绑过卡，然后用于签名的公钥会发生变化，需要定期更新。
+O pagamento do China Merchants usa cartões bancários, portanto, o usuário deve vincular o cartão pela primeira vez. Portanto, pode haver um processo extra aqui. Primeiro, deve-se registrar se o usuário vinculou o cartão e, em seguida, a chave pública usada para assinatura mudará e precisará ser atualizada regularmente.
 
-招商所有平台的支付体验都是一致的，会跳转到招行的H5页面完成逻辑，支付成功后并不会自动跳回商户，也就是没有 **同步通知**，它的支付结果只会走异步通知流程，延迟非常短暂。
+A experiência de pagamento em todas as plataformas do China Merchants é consistente. Ele saltará para a página H5 do China Merchants Bank para completar a lógica. Após o sucesso do pagamento, ele não saltará automaticamente de volta para o comerciante, ou seja, não há **notificação síncrona**. Seu resultado de pagamento seguirá apenas o fluxo de notificação assíncrona, e o atraso é muito curto.
 
-退款流程与支付宝一样，也是同步返回退款结果，没有异步通知。
+O processo de reembolso é o mesmo do Alipay, retornando o resultado do reembolso de forma síncrona, sem notificação assíncrona.
 
-> 第二个不同点：
+> Segunda diferença:
 >
-> 1. 支付前需要检查用户是否签约过，有签约流程
+> 1. Antes do pagamento, é necessário verificar se o usuário assinou o contrato, há um processo de assinatura
 
-#### 小结
+#### Resumo
 
-国内在线支付流程相对都比较完善，接入起来也非常容易。需要注意的一点是：退款后之前支付的单子依然是支付成功状态，并不会变成退款状态。因为退款与支付属于不同的交易。
+O processo de pagamento online doméstico é relativamente completo e a integração é muito fácil. Um ponto a notar é: após o reembolso, o pedido pago anteriormente ainda está no status de pagamento bem-sucedido e não mudará para o status de reembolso. Porque reembolso e pagamento são transações diferentes.
 
-这一点基本上是国内在线支付的通用做法。
+Este ponto é basicamente uma prática comum de pagamento online doméstico.
 
-### 国际支付
+### Pagamento Internacional
 
-国际支付的平台非常多，包括像支付宝、微信也在扩展这一块市场。我以我接触的几家支付做一个简单的总结。
+Existem muitas plataformas de pagamento internacional, incluindo Alipay e WeChat que também estão expandindo esse mercado. Farei um breve resumo com base em algumas empresas de pagamento com as quais tive contato.
 
 #### WorldPay
 
-这是比较出名的一家国际支付公司，它主要做的是银行卡支付，公司在英国
+Esta é uma empresa de pagamento internacional bastante famosa, que faz principalmente pagamentos com cartão bancário, e a empresa fica no Reino Unido.
 
-支付流程上，也是根据规则构建好请求的url后，直接跳转到 **WorldPay** 的页面，通过信用卡完成支付。这里比较麻烦的处理机制是：支付成功后，他首次给你的异步/同步消息通知并不能作为支付成功的依据。真的从银行确认划款成功后，才会给出真的支付成功通知。这中间还可能会异步通知告诉你支付请求被拒绝。最头痛的是不同状态的异步消息时间间隔都是按照分钟以上级别的延迟来计算
+No processo de pagamento, também é construída a url de solicitação de acordo com as regras, e então salta diretamente para a página do **WorldPay** para completar o pagamento com cartão de crédito. O mecanismo de processamento mais problemático aqui é: após o sucesso do pagamento, a primeira notificação de mensagem assíncrona/síncrona que ele fornece não pode ser usada como base para o sucesso do pagamento. Somente após a confirmação real da transferência do banco, a notificação de sucesso real do pagamento será dada. Nesse meio tempo, pode haver uma notificação assíncrona informando que a solicitação de pagamento foi recusada. A maior dor de cabeça é que o intervalo de tempo das mensagens assíncronas de diferentes status é calculado com base em atrasos de nível de minutos ou mais.
 
-退款流程上，状态跟微信一样，需要通过异步消息来确认退款状态。其次它的不同点在于无法根据商户退款单号来确认是否已经发起过退款，因此对于它来说只要请求一次退款接口，那它就默认发起了一次退款。
+No processo de reembolso, o status é o mesmo do WeChat, e o status do reembolso precisa ser confirmado por meio de mensagem assíncrona. Em segundo lugar, sua diferença é que não é possível confirmar se um reembolso já foi iniciado com base no número do pedido de reembolso do comerciante. Portanto, para ele, desde que a interface de reembolso seja solicitada uma vez, ele assume por padrão que um reembolso foi iniciado.
 
-> 第三、四不同点：
+> Terceira e quarta diferenças:
 >
-> 1. 支付成功后的通知状态有多种，涉及到商户系统业务流程的特殊处理
+> 1. Existem vários status de notificação após o sucesso do pagamento, envolvendo tratamento especial do processo de negócios do sistema do comerciante.
 >
-> 1. 退款不支持商户退款单号，无法支持防重复退款需要商户自己处理
+> 2. O reembolso não suporta o número do pedido de reembolso do comerciante e não suporta a prevenção de reembolsos duplicados, o que requer que o comerciante trate por conta própria.
 
 #### Assist
 
-这是俄罗斯的一家支付公司，这也是一家搞死人不偿命的公司，看下面介绍
+Esta é uma empresa de pagamento russa, e também é uma empresa que pode te matar de raiva, veja a introdução abaixo.
 
-它的支付发起是需要构建一个form表单，向它post支付相关的数据。成功后会跳转到它的支付页，用户完成支付即可。对于 **同步通知**，它需要用户手动触发跳回商户，与招商的逻辑很像，同步也仅仅是做返回并不会真的告知支付结果。**异步通知** 才是真的告知支付状态。比较恶心的是，支付时必须传入指定格式的商品信息，这会在部分退款时用到。
+A iniciação do pagamento requer a construção de um formulário form para postar os dados relacionados ao pagamento para ele. Após o sucesso, ele saltará para sua página de pagamento e o usuário poderá completar o pagamento. Para **notificação síncrona**, requer que o usuário acione manualmente o salto de volta para o comerciante, muito semelhante à lógica do China Merchants, a sincronização é apenas para retorno e não informará realmente o resultado do pagamento. **Notificação assíncrona** é a que realmente informa o status do pagamento. O que é mais nojento é que, ao pagar, deve-se passar as informações do produto em um formato especificado, o que será usado no reembolso parcial.
 
-现在来说退款，退款也是与 **WorldPay** 一样，不支持商户的退款单号，因此防重方面也许自己的系统进行设计。并且如果是部分退款，需要传入指定的退款商品，这就会出现一个非常尴尬的局面：部分退款的金额与任何一个商品金额都对应不上，退款则会失败。
+Agora falando sobre reembolso, o reembolso também é o mesmo do **WorldPay**, não suporta o número do pedido de reembolso do comerciante, portanto, a prevenção de duplicidade talvez precise ser projetada pelo seu próprio sistema. E se for um reembolso parcial, os produtos de reembolso especificados devem ser passados. Isso criará uma situação muito embaraçosa: o valor do reembolso parcial não corresponde ao valor de nenhum produto, e o reembolso falhará.
 
-> 第五个不同点：
+> Quinta diferença:
 >
-> 1. 部分退款时需要传入部分退款的商品信息，并且金额要一致
+> 1. No reembolso parcial, as informações do produto do reembolso parcial devem ser passadas e o valor deve ser consistente.
 
 #### Doku
 
-接下来再来聊聊印尼的这家支付机构 **doku**。由于印尼这个国家信用卡的普及程度并不高，它的在线支付提供一种超商支付方式。
+Vamos falar sobre a instituição de pagamento **doku** na Indonésia. Como a penetração de cartões de crédito neste país não é alta, seu pagamento online oferece um método de pagamento em lojas de conveniência (Supermarket/Convenience Store Payment).
 
-什么是超商支付呢？也就是用户在网络上完成下单后，会获取到一个二维码或者条形码。用户拿着这个条形码到超商（711、全家这种）通过收银员扫码，付现金给超商，完成支付流程。
+O que é pagamento em lojas de conveniência? Ou seja, após o usuário completar o pedido online, ele receberá um código QR ou código de barras. O usuário leva este código de barras para a loja de conveniência (como 7-11, FamilyMart), o caixa escaneia o código, paga em dinheiro para a loja de conveniência e completa o fluxo de pagamento.
 
-这种方式带来的问题是，用户长时间不去支付，导致订单超时关单后才去付款。对整个业务流程以及用户体验带来很多伤害。
+O problema trazido por este método é que o usuário demora muito para pagar, fazendo com que o pedido expire e seja fechado antes do pagamento. Isso traz muitos danos a todo o processo de negócios e à experiência do usuário.
 
-再来说退款，由于存在超商这种支付方式，导致这种支付无法支持在线自动退款，需要人工收集用户银行卡信息，然后完成转账操作。非常痛苦不堪。
+Falando em reembolso, devido à existência deste método de pagamento em lojas de conveniência, este pagamento não suporta reembolso automático online. É necessário coletar manualmente as informações do cartão bancário do usuário e depois completar a operação de transferência. Muito doloroso.
 
-> 第六个不同点：
+> Sexta diferença:
 >
-> 1. 线上没有付款，只有获取付款码，退款需要通过人工操作
+> 1. Não há pagamento online, apenas obtenção do código de pagamento, o reembolso requer operação manual.
 
 #### AmazonPay
 
-亚马逊出品，与支付宝非常类似。提供的是集成式的钱包流程。
+Produzido pela Amazon, muito semelhante ao Alipay. Fornece um processo de carteira integrado.
 
-支付时直接构建一个url，然后跳转到亚马逊即可完成支付。它还提供一种授权模式，能够不用跳转amazon，再商户端即完成支付。
+Ao pagar, construa diretamente uma url e pule para a Amazon para concluir o pagamento. Também fornece um modo de autorização, que permite concluir o pagamento no lado do comerciante sem pular para a amazon.
 
-支付成功后也会同步跳转，**同步通知** 的内容可以作为支付是否成功的判断依据。经过实际检查 **异步通知** 的到达会稍有延迟，大概10s以内。
+Após o sucesso do pagamento, também haverá um salto síncrono. O conteúdo da **notificação síncrona** pode ser usado como base para julgar se o pagamento foi bem-sucedido. Após verificação real, a chegada da **notificação assíncrona** terá um pequeno atraso, cerca de 10s.
 
-退款方面也支持商户退款单号可以依赖此进行防重。但是退款的状态也是基于异步来的。
+O reembolso também suporta o número do pedido de reembolso do comerciante, que pode ser usado para prevenção de duplicidade. Mas o status do reembolso também é baseado em assíncrono.
 
-### 总结
+### Resumo
 
-这其中还有一些国际支付，如：**PayPal**、**GooglePay**、**PayTM** 等知名支付机构没有进行介绍，是因为基本它们的流程也都在上面的模式之中。我们后续的代码结构设计、数据库设计都基于满足上面的各种支付模型来完成设计。
+Existem outros pagamentos internacionais, como: **PayPal**, **GooglePay**, **PayTM** e outras instituições de pagamento conhecidas que não foram apresentadas, porque basicamente seus processos também estão dentro dos modelos acima. Nosso design subsequente da estrutura de código e design de banco de dados serão baseados no cumprimento dos vários modelos de pagamento acima.
 
-最后，赠送大家一副脑图，这是接入一家支付时必须弄清楚的问题清单
+Por fim, dou a todos um mapa mental, esta é uma lista de verificação de problemas que devem ser esclarecidos ao integrar um pagamento.
 
 ![pay-2](https://dayutalk.cn/img/pay-2.png)
 
-## 支付系统设计
+## Design do Sistema de Pagamento
 
-文中我们从严谨的角度一步步聊到支付如何演变成独立的系统。内容包括：系统演进过程、接口设计、数据库设计以及代码如何组织的示例。若有不足之处，欢迎讨论共同学习。
+No texto, conversamos passo a passo de uma perspectiva rigorosa sobre como o pagamento evoluiu para um sistema independente. O conteúdo inclui: processo de evolução do sistema, design de interface, design de banco de dados e exemplos de como o código é organizado. Se houver deficiências, discussões são bem-vindas para aprendermos juntos.
 
-### 从模块到服务
+### De Módulo para Serviço
 
-我记得最开始工作的时候，所有的功能：加购物车/下单/支付 等逻辑都是放在一个项目里。如果一个新的项目需要某个功能，就把这个部分的功能包拷贝到新的项目。数据库也原封不动的拷贝过来，稍微根据需求改改。
+Lembro que quando comecei a trabalhar, todas as funções: adicionar ao carrinho/fazer pedido/pagar e outras lógicas eram colocadas em um único projeto. Se um novo projeto precisasse de uma determinada função, o pacote de função dessa parte era copiado para o novo projeto. O banco de dados também era copiado intacto e ligeiramente modificado de acordo com as necessidades.
 
-这就是所谓的 **单体应用** 时代，随着公司产品线开始多元，每条产品线都需要用到支付服务。如果支付模块调整了代码，那么就会处处改动、处处测试。另一方面公司的交易数据割裂在不同的系统中，无法有效汇总统一分析、管理。
+Esta é a chamada era da **aplicação monolítica**. À medida que a linha de produtos da empresa começou a se diversificar, cada linha de produtos precisava usar serviços de pagamento. Se o módulo de pagamento ajustasse o código, haveria mudanças em todos os lugares e testes em todos os lugares. Por outro lado, os dados de transação da empresa estavam fragmentados em sistemas diferentes, impossibilitando a agregação e análise unificada eficaz.
 
-这时就到了系统演进的时候，我们把每个产品线的支付模块抽离成统一的服务。对自己公司内部提供统一的API使用，可以对这些API进一步包装成对应的SDK，供内部业务线快速接入。这里服务使用HTTP或者是RPC协议都可以根据公司实际情况决定。不过如果考虑到未来给第三方使用，建议使用HTTP协议，
+Chegou a hora da evolução do sistema. Separamos o módulo de pagamento de cada linha de produtos em um serviço unificado. Fornecemos uma API unificada para uso interno da empresa e podemos empacotar ainda mais essas APIs em SDKs correspondentes para acesso rápido pelas linhas de negócios internas. Aqui, o serviço pode usar o protocolo HTTP ou RPC, dependendo da situação real da empresa. No entanto, se considerarmos o uso futuro por terceiros, é recomendável usar o protocolo HTTP.
 
-**系统的演变过程：**
+**Processo de evolução do sistema:**
 
 ![image-20190309104541749](https://dayutalk.cn/img/image-20190309104541749.png)
 
-总结下，将支付单独抽离成服务后，带来好处如下：
+Resumindo, separar o pagamento em um serviço independente traz os seguintes benefícios:
 
-1. 避免重复开发，数据隔离的现象出现；
-2. 支付系统周边功能演进更容易，整个系统更完善丰满。如：对账系统、实时交易数据展示；
-3. 随时可对外开发，对外输出Paas能力，成为有收入的项目；
-4. 专门的团队进行维护，系统更有机会演进成顶级系统；
-5. 公司重要账号信息保存一处，风险更小。
+1. Evitar o desenvolvimento repetido e o fenômeno de isolamento de dados;
+2. A evolução das funções periféricas do sistema de pagamento é mais fácil, e todo o sistema é mais completo e rico. Por exemplo: sistema de reconciliação, exibição de dados de transação em tempo real;
+3. Pode ser desenvolvido para o exterior a qualquer momento, exportando capacidade Paas e tornando-se um projeto gerador de receita;
+4. Equipe dedicada para manutenção, o sistema tem mais chance de evoluir para um sistema de alto nível;
+5. Informações importantes da conta da empresa são salvas em um só lugar, com menor risco.
 
-### 系统能力
+### Capacidade do Sistema
 
-如果我们接手该需求，需要为公司从零搭建支付系统。我们该从哪些方面入手？这样的系统到底需要具备什么样的能力呢？
+Se assumirmos essa demanda, precisamos construir um sistema de pagamento do zero para a empresa. Por onde devemos começar? Que tipo de capacidades tal sistema precisa ter?
 
-首先支付系统我们可以理解成是一个适配器。他需要把很多第三方的接口进行统一的整合封装后，对内部提供统一的接口，减少内部接入的成本。做为一个最基本的支付系统。需要对内提供如下接口出来：
+Primeiro, podemos entender o sistema de pagamento como um adaptador. Ele precisa integrar e encapsular muitas interfaces de terceiros e fornecer interfaces unificadas internamente, reduzindo o custo de acesso interno. Como um sistema de pagamento básico, ele precisa fornecer as seguintes interfaces internamente:
 
-1. 发起支付，我们取名：`/gopay`
-2. 发起退款，我们取名：`/refund`
-3. 接口异步通知，我们取名：`/notify/支付渠道/商户交易号`
-4. 接口同步通知，我们取名：`/return/支付渠道/商户交易号`
-5. 交易查询，我们取名：`/query/trade`
-6. 退款查询，我们取名：`/query/refund`
-7. 账单获取，我们取名：`/query/bill`
-8. 结算明细，我们取名：`/query/settle`
+1. Iniciar pagamento, nomeamos: `/gopay`
+2. Iniciar reembolso, nomeamos: `/refund`
+3. Notificação assíncrona da interface, nomeamos: `/notify/canal_de_pagamento/numero_transacao_comerciante`
+4. Notificação síncrona da interface, nomeamos: `/return/canal_de_pagamento/numero_transacao_comerciante`
+5. Consulta de transação, nomeamos: `/query/trade`
+6. Consulta de reembolso, nomeamos: `/query/refund`
+7. Obtenção de fatura (Bill), nomeamos: `/query/bill`
+8. Detalhes de liquidação, nomeamos: `/query/settle`
 
-一个基础的支付系统，上面8个接口是肯定需要提供的（这里忽略某些支付中的转账、绑卡等接口）。现在我们来基于这些接口看看都有哪些系统会用到。
+Um sistema de pagamento básico certamente precisa fornecer as 8 interfaces acima (aqui ignoramos interfaces como transferência e vinculação de cartão em alguns pagamentos). Agora vamos ver quais sistemas usarão essas interfaces.
 
 ![image-20190309111001880](https://dayutalk.cn/img/image-20190309111001880.png)
 
-下面按照系统维度，介绍下这些接口如何使用，以及内部的一些逻辑。
+Abaixo, apresentaremos como usar essas interfaces e algumas lógicas internas de acordo com a dimensão do sistema.
 
-#### 应用系统
+#### Sistema de Aplicação
 
-一般支付网关会提供两种方式让应用系统接入：
+Geralmente, o gateway de pagamento fornecerá duas maneiras para o sistema de aplicação acessar:
 
-1. 网关模式，也就是应用系统自己需要开发一个收银台；（适合提供给第三方）
-2. 收银台模式，应用系统直接打开支付网关的统一收银台。（内部业务）
+1. Modo Gateway, ou seja, o sistema de aplicação precisa desenvolver seu próprio caixa; (adequado para fornecimento a terceiros)
+2. Modo Caixa (Cashier), o sistema de aplicação abre diretamente o caixa unificado do gateway de pagamento. (Negócio interno)
 
-下面为了讲清楚设计思路，我们按照 **网关模式** 进行讲解。
+Para explicar claramente a ideia de design, explicaremos de acordo com o **Modo Gateway**.
 
-对于应用系统它需要能够请求支付，也就是调用 `gopay` 接口。这个接口会处理商户的数据，完成后会调用第三方网关接口，并将返回结果统一处理后返回给应用方。
+Para o sistema de aplicação, ele precisa ser capaz de solicitar pagamento, ou seja, chamar a interface `gopay`. Esta interface processará os dados do comerciante, chamará a interface do gateway de terceiros após a conclusão e retornará o resultado unificado para a parte da aplicação.
 
-这里需要注意，第三方针对支付接口根据我的经验大致有以下情况：
+Aqui deve-se notar que, de acordo com minha experiência, a interface de pagamento de terceiros geralmente tem as seguintes situações:
 
-1. 支付时，不需要调用第三方，按照规则生成数据即可；
-2. 支付时，需要调用第三方多个接口完成逻辑（这可能比较慢，大型活动时需要考虑限流/降配）；
-3. 返回的数据是一个url，可直接跳转到第三方完成支付（wap/pc站）；
-4. 返回的数据是xml/json结构，需要拼装或作为参数传给她的sdk（app）。
+1. Ao pagar, não há necessidade de chamar o terceiro, basta gerar dados de acordo com as regras;
+2. Ao pagar, é necessário chamar várias interfaces de terceiros para completar a lógica (isso pode ser lento, e limitação de fluxo/downgrade deve ser considerado durante grandes eventos);
+3. Os dados retornados são uma url, que pode saltar diretamente para o terceiro para completar o pagamento (site wap/pc);
+4. Os dados retornados são uma estrutura xml/json, que precisa ser montada ou passada como parâmetro para seu sdk (app).
 
-这里由于第三方返回结构的不统一，我们需要统一处理成统一格式，返回给商户端。我推荐使用json格式。
+Devido à inconsistência da estrutura de retorno de terceiros, precisamos processá-la uniformemente em um formato unificado e retorná-la ao lado do comerciante. Recomendo usar o formato json.
 
 ```json
 {
@@ -197,7 +197,7 @@
 }
 ```
 
-我们把所有的变化封装在 **data** 结构中。举个例子，如果返回的一个url。只需要应用程序发起 **GET** 请求。我们可以这样返回：
+Encapsulamos todas as mudanças na estrutura **data**. Por exemplo, se uma url for retornada. O aplicativo só precisa iniciar uma solicitação **GET**. Podemos retornar assim:
 
 ```json
 {
@@ -210,7 +210,7 @@
 }
 ```
 
-如果是返回的结构，需要应用程序直接发起 **POST** 请求。我们可以这样返回：
+Se for uma estrutura retornada, o aplicativo precisa iniciar uma solicitação **POST** diretamente. Podemos retornar assim:
 
 ```json
 {
@@ -223,210 +223,210 @@
 }
 ```
 
-这里的 **form** 字段，生成了一个form表单，应用程序拿到后可直接显示然后自动提交。当然封装成 from表单这一步也可以放在商户端进行。
+O campo **form** aqui gera um formulário form, que o aplicativo pode exibir diretamente e enviar automaticamente após obtê-lo. Claro, a etapa de encapsulamento em formulário também pode ser feita no lado do comerciante.
 
-上面的数据格式仅仅是一个参考。大家可根据自己的需求进行调整。
+O formato de dados acima é apenas uma referência. Todos podem ajustar de acordo com suas próprias necessidades.
 
-一般应用系统除了会调用发起支付的接口外，可能还需要调用 **支付结果查询接口**。当然大多数情况下不需要调用，应用系统对交易的状态只应该依赖自己的系统状态。
+Geralmente, além de chamar a interface para iniciar o pagamento, o sistema de aplicação também pode precisar chamar a **interface de consulta de resultado de pagamento**. Claro, na maioria dos casos não é necessário chamar, o sistema de aplicação deve depender apenas do status do seu próprio sistema para o status da transação.
 
-#### 对账系统
+#### Sistema de Reconciliação
 
-对于对账，一般分为两个类型：**交易对账** 与 **结算对账**
+Para reconciliação, geralmente é dividido em dois tipos: **Reconciliação de Transação** e **Reconciliação de Liquidação**
 
-##### 交易对账
+##### Reconciliação de Transação
 
-交易对账的核心点是：**检查每一笔交易是否正确**。它主要目的是看我们系统中的每一笔交易与第三方的每一笔交易是否一致。
+O ponto central da reconciliação de transação é: **Verificar se cada transação está correta**. Seu objetivo principal é ver se cada transação em nosso sistema é consistente com cada transação do terceiro.
 
-这个检查逻辑很简单，对两份账单数据进行比较。它主要是使用 `/query/bill` 接口，拿到在第三方那边完成的交易数据。然后跟我方的交易成功数据进行比较。检查是否存在误差。
+Essa lógica de verificação é muito simples, comparando dois conjuntos de dados de faturamento. Ele usa principalmente a interface `/query/bill` para obter os dados da transação concluída no lado do terceiro. Em seguida, compare com nossos dados de sucesso da transação. Verifique se há erros.
 
-这个逻辑非常简单，但是有几点需要大家注意：
+Essa lógica é muito simples, mas há alguns pontos que todos precisam prestar atenção:
 
-1. 我方的数据需要正常支付数据+重复支付数据的总和；
-2. 对账检查不成功主要包括：**金额不对**、**第三方没有找到对应的交易数据**、**我方不存在对应的交易数据**。
+1. Nossos dados precisam ser a soma dos dados de pagamento normais + dados de pagamento duplicados;
+2. Falha na verificação de reconciliação inclui principalmente: **valor incorreto**, **o terceiro não encontrou os dados de transação correspondentes**, **nosso lado não tem os dados de transação correspondentes**.
 
-针对这些情况都需要有对应的处理手段进行处理。在我的经验中上面的情况都有过遇到。
+Para essas situações, deve haver meios de processamento correspondentes. Na minha experiência, encontrei todas as situações acima.
 
-**金额不对**：主要是由于第三方的问题，可能是系统升级故障、可能是账单接口金额错误；
+**Valor incorreto**: Principalmente devido a problemas de terceiros, pode ser falha na atualização do sistema, pode ser erro no valor da interface da fatura;
 
-**第三方无交易数据：** 可能是拉去的账单时间维度问题（比如存在时差），这种时区问题需要自己跟第三方确认找到对应的时间差。也可能是被攻击，有人冒充第三方异步通知（说明系统校验机制又问题或者密钥泄漏了）。
+**Terceiro sem dados de transação:** Pode ser um problema na dimensão de tempo da fatura obtida (por exemplo, diferença de fuso horário), esse problema de fuso horário precisa ser confirmado com o terceiro para encontrar a diferença de tempo correspondente. Também pode ser um ataque, alguém fingindo ser uma notificação assíncrona de terceiro (indicando que o mecanismo de verificação do sistema tem problemas ou a chave vazou).
 
-**自己系统无交易数据：** 这种原因可能是第三方通知未发出或者未正确处理导致的。
+**Próprio sistema sem dados de transação:** Esse motivo pode ser causado pelo fato de a notificação de terceiro não ter sido enviada ou não ter sido processada corretamente.
 
-上面这些问题的处理绝大部份都可以依赖 `query/trade`  `query/refund` 来完成自动化处理。
+O tratamento da grande maioria desses problemas pode depender de `query/trade` `query/refund` para completar o processamento automatizado.
 
-##### 结算对账
+##### Reconciliação de Liquidação
 
-那么有了上面的 **交易对账** 为什么还需要 **结算对账** 呢？这个系统又是干嘛的？先来看下结算的含义。
+Então, com a **Reconciliação de Transação** acima, por que precisamos da **Reconciliação de Liquidação**? O que este sistema faz? Vamos primeiro ver o significado de liquidação.
 
-> 结算，就是第三方网关在固定时间点，将T+x或其它约定时间的金额，汇款到公司账号。
+> Liquidação é quando o gateway de terceiros transfere o valor de T+x ou outro tempo acordado para a conta da empresa em um ponto fixo no tempo.
 
-下面我们假设结算周期是： **T+1**。结算对账主要使用到的接口是 `/query/settle`，这个接口获取的主要内容是：每一笔结算的款项都是由哪些笔交易组成（交易成功与退款数据）。以及本次结算扣除多少手续费用。
+Vamos supor que o ciclo de liquidação seja: **T+1**. A interface usada principalmente para reconciliação de liquidação é `/query/settle`. O conteúdo principal obtido por esta interface é: de quais transações (sucesso de transação e dados de reembolso) cada item de liquidação é composto. E quanto de taxa de manuseio foi deduzido nesta liquidação.
 
-它的逻辑其实也很简单。我们先从自己的系统按照 **T+1** 的结算周期，计算出对方应该汇款给我们多少金额。然后与刚刚接口获取到的数据金额比较：
+Sua lógica é realmente muito simples. Primeiro calculamos quanto a outra parte deve nos transferir de acordo com o ciclo de liquidação de **T+1** do nosso próprio sistema. Em seguida, compare com o valor dos dados obtidos na interface agora:
 
-> 银行收款金额 + 手续费 = 我方系统计算的金额
+> Valor recebido pelo banco + Taxa de manuseio = Valor calculado pelo nosso sistema
 
-这一步检查通过后，说明金额没有问题。接下来需要检查本次结算下的每一笔订单是否一致。
+Após passar nesta verificação, significa que não há problema com o valor. Em seguida, é necessário verificar se cada pedido sob esta liquidação é consistente.
 
-结算系统是 **强依赖** 对账系统的。如果对账发现异常，那么结算金额肯定会出现异常。另外结算需要注意的一些问题是：
+O sistema de liquidação é **fortemente dependente** do sistema de reconciliação. Se a reconciliação encontrar uma anomalia, o valor da liquidação certamente terá uma anomalia. Além disso, alguns problemas que precisam ser observados na liquidação são:
 
-- 银行可能会自行退款给用户，因为用户可直接向自己发卡行申请退款；
-- 结算也存在时区差问题；
-- 结算接口中的明细交易状态与我方并不完全一致。比如：银行结算时发现某笔退款完成，但我方系统在进行比较时按照未退款完成的逻辑在处理。
+- O banco pode reembolsar o usuário por conta própria, pois o usuário pode solicitar reembolso diretamente ao banco emissor do cartão;
+- A liquidação também tem problemas de diferença de fuso horário;
+- O status detalhado da transação na interface de liquidação não é totalmente consistente com o nosso. Por exemplo: o banco descobre que um determinado reembolso foi concluído durante a liquidação, mas nosso sistema está processando de acordo com a lógica de reembolso não concluído ao comparar.
 
-针对上面的问题，大家根据自己的业务需求需要做一些方案来进行自动化处理。
+Para os problemas acima, todos precisam fazer alguns planos para processamento automatizado de acordo com suas necessidades de negócios.
 
-#### 财务系统
+#### Sistema Financeiro
 
-财务系统有很多内部业务，我这里只聊与支付系统相关的。（当然上面的对账系统也可以算是财务范畴）。
+O sistema financeiro tem muitos negócios internos, aqui falarei apenas sobre os relacionados ao sistema de pagamento. (Claro, o sistema de reconciliação acima também pode ser considerado parte da categoria financeira).
 
-财务系统与支付主要的一个关系点在于校验交易、以及退款。这里校验交易可以使用 `query/trade`  `query/refund`这两个接口来完成。这个逻辑过程就不需要说了。下面重点说下退款。
+Um ponto principal de relacionamento entre o sistema financeiro e o pagamento está na verificação de transações e reembolsos. Aqui, a verificação da transação pode usar as interfaces `query/trade` `query/refund` para completar. Este processo lógico não precisa ser dito. Vamos nos concentrar no reembolso.
 
-我看到很多的系统退款是直接放在了应用里边，用户申请退款直接就调用退款接口进行退款。这样的风险非常高。支付系统的关于资金流向的接口一定要慎重，不能过多的直接暴露给外部，带来风险。
+Vejo que o reembolso em muitos sistemas é colocado diretamente na aplicação, e o usuário solicita o reembolso e chama diretamente a interface de reembolso para reembolsar. O risco disso é muito alto. As interfaces do sistema de pagamento relacionadas ao fluxo de fundos devem ser tratadas com cautela e não podem ser excessivamente expostas diretamente ao exterior, trazendo riscos.
 
-退款的功能应该是放到财务系统来做。这样可以走内部的审批流程（是否需要根据业务来），并且在财务系统中可以进行更多检查来觉得是否立即进行退款，或者进入等待、拒绝等流程。
+A função de reembolso deve ser colocada no sistema financeiro. Desta forma, pode seguir o processo de aprovação interno (se necessário de acordo com o negócio), e mais verificações podem ser realizadas no sistema financeiro para decidir se deve reembolsar imediatamente, ou entrar em processos de espera, rejeição, etc.
 
-#### 第三方网关
+#### Gateway de Terceiros
 
-针对第三方主要使用到的其实就是异步通知与同步通知两个接口。这一部分的逻辑其实非常简单。就是根据第三方的通知完成交易状态的变更。以及通知到自己对应的应用系统。
+Para terceiros, o que é usado principalmente são as duas interfaces: notificação assíncrona e notificação síncrona. A lógica desta parte é realmente muito simples. É completar a mudança de status da transação de acordo com a notificação do terceiro. E notificar seu sistema de aplicação correspondente.
 
-这部分比较复杂的是，第三方的通知数据结构不统一、通知的类型不统一。比如：有的退款是同步返回结果、有的是异步返回结果。这里如何设计会在后面的 **系统设计** 中给出答案。
+A parte mais complicada aqui é que a estrutura de dados de notificação de terceiros não é unificada e o tipo de notificação não é unificado. Por exemplo: alguns reembolsos retornam resultados de forma síncrona, alguns retornam resultados de forma assíncrona. Como projetar isso será respondido no **Design do Sistema** posterior.
 
-### 数据库设计
+### Design de Banco de Dados
 
-数据的设计是按照：交易、退款、日志 来设计的。对于上面说到的对账等功能并没有。这部分不难大家可以自行设计，按照上面讲到的思路。主要的表介绍如下：
+O design dos dados é baseado em: Transação, Reembolso, Log. Para funções como a reconciliação mencionada acima, não há design aqui. Esta parte não é difícil, todos podem projetar por si mesmos, seguindo as ideias mencionadas acima. As principais tabelas são apresentadas a seguir:
 
-- `pay_transaction` 记录所有的交易数据。
-- `pay_transaction_extension` 记录每次向第三方发起交易时，生成的交易号
-- `pay_log_data` 所有的日志数据，如：支付请求、退款请求、异步通知等
-- `pay_repeat_transaction` 重复支付的数据
-- `pay_notify_app_log` 通知应用程序的日志
-- `pay_refund` 记录所有的退款数据
+- `pay_transaction` Registra todos os dados de transação.
+- `pay_transaction_extension` Registra o número da transação gerado a cada vez que uma transação é iniciada com um terceiro.
+- `pay_log_data` Todos os dados de log, como: solicitação de pagamento, solicitação de reembolso, notificação assíncrona, etc.
+- `pay_repeat_transaction` Dados de pagamento duplicados.
+- `pay_notify_app_log` Log de notificação para o aplicativo.
+- `pay_refund` Registra todos os dados de reembolso.
 
-**具体的表结构：**
+**Estrutura específica das tabelas:**
 
 ```sql
 -- -----------------------------------------------------
--- Table 创建支付流水表
+-- Table Criar tabela de fluxo de pagamento
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_transaction` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `app_id` VARCHAR(32) NOT NULL COMMENT '应用id',
-  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付方式id，可以用来识别支付，如：支付宝、微信、Paypal等',
-  `app_order_id` VARCHAR(64) NOT NULL COMMENT '应用方订单号',
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '本次交易唯一id，整个支付系统唯一，生成他的原因主要是 order_id对于其它应用来说可能重复',
-  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付金额，整数方式保存',
-  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '金额对应的小数位数',
-  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '交易的币种',
-  `pay_channel` VARCHAR(64) NOT NULL COMMENT '选择的支付渠道，比如：支付宝中的花呗、信用卡等',
-  `expire_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '订单过期时间',
-  `return_url` VARCHAR(255) NOT NULL COMMENT '支付后跳转url',
-  `notify_url` VARCHAR(255) NOT NULL COMMENT '支付后，异步通知url',
-  `email` VARCHAR(64) NOT NULL COMMENT '用户的邮箱',
-  `sign_type` VARCHAR(10) NOT NULL DEFAULT 'RSA' COMMENT '采用的签方式：MD5 RSA RSA2 HASH-MAC等',
-  `intput_charset` CHAR(5) NOT NULL DEFAULT 'UTF-8' COMMENT '字符集编码方式',
-  `payment_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '第三方支付成功的时间',
-  `notify_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '收到异步通知的时间',
-  `finish_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '通知上游系统的时间',
-  `trade_no` VARCHAR(64) NOT NULL COMMENT '第三方的流水号',
-  `transaction_code` VARCHAR(64) NOT NULL COMMENT '真实给第三方的交易code，异步通知的时候更新',
-  `order_status` TINYINT NOT NULL DEFAULT 0 COMMENT '0:等待支付，1:待付款完成， 2:完成支付，3:该笔交易已关闭，-1:支付失败',
-  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建的ip，这可能是自己服务的ip',
-  `update_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新的ip',
+  `app_id` VARCHAR(32) NOT NULL COMMENT 'id da aplicação',
+  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'id do método de pagamento, pode ser usado para identificar pagamento, como: Alipay, WeChat, Paypal, etc.',
+  `app_order_id` VARCHAR(64) NOT NULL COMMENT 'número do pedido do lado da aplicação',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'id único desta transação, único em todo o sistema de pagamento, a razão para gerá-lo é principalmente que order_id pode ser repetido para outras aplicações',
+  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'valor do pagamento, salvo como inteiro',
+  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'casas decimais correspondentes ao valor',
+  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT 'moeda da transação',
+  `pay_channel` VARCHAR(64) NOT NULL COMMENT 'canal de pagamento selecionado, por exemplo: Huabei no Alipay, cartão de crédito, etc.',
+  `expire_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de expiração do pedido',
+  `return_url` VARCHAR(255) NOT NULL COMMENT 'url de salto após pagamento',
+  `notify_url` VARCHAR(255) NOT NULL COMMENT 'url de notificação assíncrona após pagamento',
+  `email` VARCHAR(64) NOT NULL COMMENT 'e-mail do usuário',
+  `sign_type` VARCHAR(10) NOT NULL DEFAULT 'RSA' COMMENT 'método de assinatura adotado: MD5 RSA RSA2 HASH-MAC etc.',
+  `intput_charset` CHAR(5) NOT NULL DEFAULT 'UTF-8' COMMENT 'codificação do conjunto de caracteres',
+  `payment_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de sucesso do pagamento de terceiros',
+  `notify_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de recebimento da notificação assíncrona',
+  `finish_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de notificação ao sistema upstream',
+  `trade_no` VARCHAR(64) NOT NULL COMMENT 'número de fluxo do terceiro',
+  `transaction_code` VARCHAR(64) NOT NULL COMMENT 'código de transação real para o terceiro, atualizado na notificação assíncrona',
+  `order_status` TINYINT NOT NULL DEFAULT 0 COMMENT '0:aguardando pagamento, 1:pagamento pendente conclusão, 2:pagamento concluído, 3:transação fechada, -1:falha no pagamento',
+  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de criação',
+  `update_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de atualização',
+  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ip de criação, pode ser o ip do próprio serviço',
+  `update_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ip de atualização',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `uniq_tradid` (`transaction_id`),
   INDEX `idx_trade_no` (`trade_no`),
   INDEX `idx_ctime` (`create_at`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '发起支付的数据';
+COMMENT = 'Dados de início de pagamento';
 
 -- -----------------------------------------------------
--- Table 交易扩展表
+-- Table Tabela de extensão de transação
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_transaction_extension` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '系统唯一交易id',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'id de transação único do sistema',
   `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0,
-  `transaction_code` VARCHAR(64) NOT NULL COMMENT '生成传输给第三方的订单号',
-  `call_num` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '发起调用的次数',
-  `extension_data` TEXT NOT NULL COMMENT '扩展内容，需要保存：transaction_code 与 trade no 的映射关系，异步通知的时候填充',
-  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `create_ip` INT UNSIGNED NOT NULL COMMENT '创建ip',
+  `transaction_code` VARCHAR(64) NOT NULL COMMENT 'número do pedido gerado para transmissão ao terceiro',
+  `call_num` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'número de chamadas iniciadas',
+  `extension_data` TEXT NOT NULL COMMENT 'conteúdo estendido, precisa salvar: mapeamento entre transaction_code e trade no, preenchido na notificação assíncrona',
+  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de criação',
+  `create_ip` INT UNSIGNED NOT NULL COMMENT 'ip de criação',
   PRIMARY KEY (`id`),
   INDEX `idx_trads` (`transaction_id`),
   UNIQUE INDEX `uniq_code` (`transaction_code`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '交易扩展表';
+COMMENT = 'Tabela de extensão de transação';
 
 -- -----------------------------------------------------
--- Table 交易系统全部日志
+-- Table Todos os logs do sistema de transação
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_log_data` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `app_id` VARCHAR(32) NOT NULL COMMENT '应用id',
-  `app_order_id` VARCHAR(64) NOT NULL COMMENT '应用方订单号',
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '本次交易唯一id，整个支付系统唯一，生成他的原因主要是 order_id对于其它应用来说可能重复',
-  `request_header` TEXT NOT NULL COMMENT '请求的header 头',
-  `request_params` TEXT NOT NULL COMMENT '支付的请求参数',
-  `log_type` VARCHAR(10) NOT NULL COMMENT '日志类型，payment:支付; refund:退款; notify:异步通知; return:同步通知; query:查询',
-  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建ip',
+  `app_id` VARCHAR(32) NOT NULL COMMENT 'id da aplicação',
+  `app_order_id` VARCHAR(64) NOT NULL COMMENT 'número do pedido do lado da aplicação',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'id único desta transação, único em todo o sistema de pagamento, a razão para gerá-lo é principalmente que order_id pode ser repetido para outras aplicações',
+  `request_header` TEXT NOT NULL COMMENT 'header da requisição',
+  `request_params` TEXT NOT NULL COMMENT 'parâmetros da requisição de pagamento',
+  `log_type` VARCHAR(10) NOT NULL COMMENT 'tipo de log, payment:pagamento; refund:reembolso; notify:notificação assíncrona; return:notificação síncrona; query:consulta',
+  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de criação',
+  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ip de criação',
   PRIMARY KEY (`id`),
   INDEX `idx_tradt` (`transaction_id`, `log_type`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '交易日志表';
+COMMENT = 'Tabela de log de transação';
 
 
 -- -----------------------------------------------------
--- Table 重复支付的交易
+-- Table Transações de pagamento duplicado
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_repeat_transaction` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `app_id` VARCHAR(32) NOT NULL COMMENT '应用的id',
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '系统唯一识别交易号',
-  `transaction_code` VARCHAR(64) NOT NULL COMMENT '支付成功时，该笔交易的 code',
-  `trade_no` VARCHAR(64) NOT NULL COMMENT '第三方对应的交易号',
-  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付方式',
-  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '交易金额',
-  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '小数位数',
-  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '支付选择的币种，CNY、HKD、USD等',
-  `payment_time` INT NOT NULL COMMENT '第三方交易时间',
-  `repeat_type` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '重复类型：1同渠道支付、2不同渠道支付',
-  `repeat_status` TINYINT UNSIGNED DEFAULT 0 COMMENT '处理状态,0:未处理；1:已处理',
-  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` INT UNSIGNED NOT NULL COMMENT '更新时间',
+  `app_id` VARCHAR(32) NOT NULL COMMENT 'id da aplicação',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'número de identificação única da transação do sistema',
+  `transaction_code` VARCHAR(64) NOT NULL COMMENT 'código desta transação quando o pagamento for bem-sucedido',
+  `trade_no` VARCHAR(64) NOT NULL COMMENT 'número da transação correspondente do terceiro',
+  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'método de pagamento',
+  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'valor da transação',
+  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'casas decimais',
+  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT 'moeda selecionada para pagamento, CNY, HKD, USD, etc.',
+  `payment_time` INT NOT NULL COMMENT 'tempo da transação de terceiro',
+  `repeat_type` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'tipo de duplicidade: 1 pagamento no mesmo canal, 2 pagamento em canais diferentes',
+  `repeat_status` TINYINT UNSIGNED DEFAULT 0 COMMENT 'status de processamento, 0: não processado; 1: processado',
+  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de criação',
+  `update_at` INT UNSIGNED NOT NULL COMMENT 'tempo de atualização',
   PRIMARY KEY (`id`),
   INDEX `idx_trad` ( `transaction_id`),
   INDEX `idx_method` (`pay_method_id`),
   INDEX `idx_time` (`create_at`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '记录重复支付';
+COMMENT = 'Registrar pagamentos duplicados';
 
 
 -- -----------------------------------------------------
--- Table 通知上游应用日志
+-- Table Log de notificação para aplicação upstream
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_notify_app_log` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `app_id` VARCHAR(32) NOT NULL COMMENT '应用id',
-  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付方式',
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '交易号',
-  `transaction_code` VARCHAR(64) NOT NULL COMMENT '支付成功时，该笔交易的 code',
-  `sign_type` VARCHAR(10) NOT NULL DEFAULT 'RSA' COMMENT '采用的签名方式：MD5 RSA RSA2 HASH-MAC等',
+  `app_id` VARCHAR(32) NOT NULL COMMENT 'id da aplicação',
+  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'método de pagamento',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'número da transação',
+  `transaction_code` VARCHAR(64) NOT NULL COMMENT 'código desta transação quando o pagamento for bem-sucedido',
+  `sign_type` VARCHAR(10) NOT NULL DEFAULT 'RSA' COMMENT 'método de assinatura adotado: MD5 RSA RSA2 HASH-MAC etc.',
   `input_charset` CHAR(5) NOT NULL DEFAULT 'UTF-8',
-  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '涉及的金额，无小数',
-  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '小数位数',
-  `pay_channel` VARCHAR(64) NOT NULL COMMENT '支付渠道',
-  `trade_no` VARCHAR(64) NOT NULL COMMENT '第三方交易号',
-  `payment_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付时间',
-  `notify_type` VARCHAR(10) NOT NULL DEFAULT 'paid' COMMENT '通知类型，paid/refund/canceled',
-  `notify_status` VARCHAR(7) NOT NULL DEFAULT 'INIT' COMMENT '通知支付调用方结果；INIT:初始化，PENDING: 进行中；  SUCCESS：成功；  FAILED：失败',
+  `total_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'valor envolvido, sem decimais',
+  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'casas decimais',
+  `pay_channel` VARCHAR(64) NOT NULL COMMENT 'canal de pagamento',
+  `trade_no` VARCHAR(64) NOT NULL COMMENT 'número da transação de terceiro',
+  `payment_time` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de pagamento',
+  `notify_type` VARCHAR(10) NOT NULL DEFAULT 'paid' COMMENT 'tipo de notificação, paid/refund/canceled',
+  `notify_status` VARCHAR(7) NOT NULL DEFAULT 'INIT' COMMENT 'resultado da notificação ao chamador do pagamento; INIT: inicialização, PENDING: em andamento; SUCCESS: sucesso; FAILED: falha',
   `create_at` INT UNSIGNED NOT NULL DEFAULT 0,
   `update_at` INT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -435,32 +435,32 @@ CREATE TABLE IF NOT EXISTS `pay_notify_app_log` (
   INDEX `idx_time` (`create_at`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '支付调用方记录';
+COMMENT = 'Registro do chamador de pagamento';
 
 
 -- -----------------------------------------------------
--- Table 退款
+-- Table Reembolso
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `pay_refund` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `app_id` VARCHAR(64) NOT NULL COMMENT '应用id',
-  `app_refund_no` VARCHAR(64) NOT NULL COMMENT '上游的退款id',
-  `transaction_id` VARCHAR(64) NOT NULL COMMENT '交易号',
-  `trade_no` VARCHAR(64) NOT NULL COMMENT '第三方交易号',
-  `refund_no` VARCHAR(64) NOT NULL COMMENT '支付平台生成的唯一退款单号',
-  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '支付方式',
-  `pay_channel` VARCHAR(64) NOT NULL COMMENT '选择的支付渠道，比如：支付宝中的花呗、信用卡等',
-  `refund_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '退款金额',
-  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '小数位数',
-  `refund_reason` VARCHAR(128) NOT NULL COMMENT '退款理由',
-  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '币种，CNY  USD HKD',
-  `refund_type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '退款类型；0:业务退款; 1:重复退款',
-  `refund_method` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT '退款方式：1自动原路返回; 2人工打款',
-  `refund_status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0未退款; 1退款处理中; 2退款成功; 3退款不成功',
-  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建时间',
-  `update_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新时间',
-  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '请求源ip',
-  `update_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT '请求源ip',
+  `app_id` VARCHAR(64) NOT NULL COMMENT 'id da aplicação',
+  `app_refund_no` VARCHAR(64) NOT NULL COMMENT 'id de reembolso do upstream',
+  `transaction_id` VARCHAR(64) NOT NULL COMMENT 'número da transação',
+  `trade_no` VARCHAR(64) NOT NULL COMMENT 'número da transação de terceiro',
+  `refund_no` VARCHAR(64) NOT NULL COMMENT 'número único do pedido de reembolso gerado pela plataforma de pagamento',
+  `pay_method_id` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'método de pagamento',
+  `pay_channel` VARCHAR(64) NOT NULL COMMENT 'canal de pagamento selecionado, por exemplo: Huabei no Alipay, cartão de crédito, etc.',
+  `refund_fee` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'valor do reembolso',
+  `scale` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'casas decimais',
+  `refund_reason` VARCHAR(128) NOT NULL COMMENT 'motivo do reembolso',
+  `currency_code` CHAR(3) NOT NULL DEFAULT 'CNY' COMMENT 'moeda, CNY USD HKD',
+  `refund_type` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tipo de reembolso; 0: reembolso de negócio; 1: reembolso duplicado',
+  `refund_method` TINYINT UNSIGNED NOT NULL DEFAULT 1 COMMENT 'método de reembolso: 1 retorno automático pelo caminho original; 2 transferência manual',
+  `refund_status` TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 não reembolsado; 1 reembolso em processamento; 2 reembolso bem-sucedido; 3 reembolso mal-sucedido',
+  `create_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de criação',
+  `update_at` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'tempo de atualização',
+  `create_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ip de origem da requisição',
+  `update_ip` INT UNSIGNED NOT NULL DEFAULT 0 COMMENT 'ip de origem da requisição',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `uniq_refno` (`refund_no`),
   INDEX `idx_trad` (`transaction_id`),
@@ -468,51 +468,51 @@ CREATE TABLE IF NOT EXISTS `pay_refund` (
   INDEX `idx_ctime` (`create_at`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
-COMMENT = '退款记录';
+COMMENT = 'Registro de reembolso';
 ```
 
 
 
-表的使用逻辑进行下方简单描述：
+A lógica de uso da tabela é descrita brevemente abaixo:
 
-**支付**，首先需要记录请求日志到 `pay_log_data`中，然后生成交易数据记录到 `pay_transaction`与`pay_transaction_extension` 中。
+**Pagamento**, primeiro precisa registrar o log de requisição em `pay_log_data`, e então gerar dados de transação para registrar em `pay_transaction` e `pay_transaction_extension`.
 
-**收到通知**，记录数据到 `pay_log_data` 中，然后根据时支付的通知还是退款的通知，更新 `pay_transaction` 与 `pay_refund` 的状态。如果是重复支付需要记录数据到 `pay_repeat_transaction` 中。并且将需要通知应用的数据记录到 `pay_notify_app_log`，这张表相当于一个消息表，会有消费者会去消费其中的内容。
+**Recebimento de notificação**, registrar dados em `pay_log_data`, e então atualizar o status de `pay_transaction` e `pay_refund` dependendo se é uma notificação de pagamento ou notificação de reembolso. Se for pagamento duplicado, precisa registrar dados em `pay_repeat_transaction`. E registrar os dados que precisam notificar a aplicação em `pay_notify_app_log`, esta tabela é equivalente a uma tabela de mensagens, e haverá consumidores que consumirão seu conteúdo.
 
-**退款** 记录日志日志到 `pay_log_data` 中，然后记录数据到退款表中 `pay_refund`。
+**Reembolso**, registrar log em `pay_log_data`, e então registrar dados na tabela de reembolso `pay_refund`.
 
-当然这其中还有些细节，需要大家自己看了表结构，实际去思考一下该如何使用。如果有任何疑问欢迎到我们GitHub的项目（点击阅读原文）中留言，我们都会一一解答。
+Claro, há alguns detalhes nisso, que exigem que todos vejam a estrutura da tabela e pensem em como usá-la na prática. Se tiver alguma dúvida, deixe uma mensagem em nosso projeto GitHub (clique em Leia o Artigo Original), e responderemos uma a uma.
 
-> 这些表能够满足最基本的需求，其它内容可根据自己的需求进行扩张，比如：支持用户卡列表、退款走银行卡等。
+> Essas tabelas podem atender às necessidades mais básicas, outros conteúdos podem ser expandidos de acordo com suas próprias necessidades, como: suporte à lista de cartões do usuário, reembolso via cartão bancário, etc.
 
-### 系统设计
+### Design do Sistema
 
-这部分主要说下系统该如何搭建，以及代码组织方式的建议。
+Esta parte fala principalmente sobre como construir o sistema e sugestões sobre a organização do código.
 
-#### 系统架构
+#### Arquitetura do Sistema
 
-由于支付系统的安全性非常高，因此不建议将对应的入口直接暴露给用户可见。应该是在自己的应用系统中调用支付系统的接口来完成业务。另外系统对数据要求是：强一致性的。因此也没有缓存介入（当如缓存可以用来做报警，这不在本文范畴）。
+Como a segurança do sistema de pagamento é muito alta, não é recomendável expor a entrada correspondente diretamente visível ao usuário. Deveria ser o seu próprio sistema de aplicação chamando a interface do sistema de pagamento para completar o negócio. Além disso, o requisito de dados do sistema é: consistência forte. Portanto, não há intervenção de cache (cache pode ser usado para alarmes, o que não está no escopo deste artigo).
 
 ![image-20190309135800643](https://dayutalk.cn/img/image-20190309135800643.png)
 
-具体的实现，系统会使用两个域名，一个为内部使用，只有指定来源的ip能够访问固定功能（访问除通知外的其它功能）。另一个域名只能访问 `notify` `return` 两个路由。通过这种方式可以保证系统的安全。
+Na implementação específica, o sistema usará dois nomes de domínio, um para uso interno, onde apenas ips de origem especificados podem acessar funções fixas (acessar outras funções exceto notificação). O outro nome de domínio só pode acessar as duas rotas `notify` e `return`. Desta forma, a segurança do sistema pode ser garantida.
 
-在数据库的使用上无论什么请求直接走 **Master** 库。这样保证数据的强一致。当然从库也是需要的。比如：账单、对账相关逻辑我们可以利用从库完成。
+No uso do banco de dados, independentemente da solicitação, vá diretamente para o banco **Master**. Isso garante forte consistência dos dados. Claro, bancos escravos também são necessários. Por exemplo: lógica relacionada a faturas e reconciliação pode ser completada usando bancos escravos.
 
-#### 代码设计
+#### Design de Código
 
-不管想做什么最终都要用代码来实现。我们都知道需要可维护、可扩展的代码。那么具体到支付系统你会怎么做呢？我已支付为例说下我的代码结构设计思路。仅供参考。比如我要介入：微信、支付宝、招行 三家支付。我的代码结构图如下：
+Não importa o que você queira fazer, no final deve ser implementado com código. Todos nós sabemos que precisamos de código sustentável e extensível. Então, especificamente para o sistema de pagamento, o que você faria? Usarei o pagamento como exemplo para explicar minha ideia de design de estrutura de código. Apenas para referência. Por exemplo, quero integrar: WeChat, Alipay e China Merchants Bank, três pagamentos. Meu diagrama de estrutura de código é o seguinte:
 
 ![image-20190309142925499](https://dayutalk.cn/img/image-20190309142925499.png)
 
-用文字简单介绍下。我会将每一个第三方封装成： `XXXGateway` 类，内部是单纯的封装第三方接口，不管对方是 HTTP 请求还是 SOAP 请求，都在内部进行统一处理。
+Vou apresentar brevemente com texto. Vou encapsular cada terceiro em: classe `XXXGateway`, que encapsula puramente a interface de terceiros, independentemente de a outra parte ser uma solicitação HTTP ou solicitação SOAP, tudo é processado uniformemente internamente.
 
-另外有一层`XXXProxy` 来封装这些第三方提供的能力。这一层主要干两件事情：对传过来请求支付的数据进行个性化处理。对返回的结构进行统一处理返回上层统一的结构。当然根据特殊情况这里可以进行一切业务处理；
+Além disso, há uma camada `XXXProxy` para encapsular as capacidades fornecidas por esses terceiros. Esta camada faz principalmente duas coisas: processamento personalizado dos dados de solicitação de pagamento recebidos. Processamento unificado da estrutura retornada para retornar a estrutura unificada da camada superior. Claro, dependendo de circunstâncias especiais, todo o processamento de negócios pode ser realizado aqui;
 
-通过上面的操作变化已经基本上被完全封装了。如果新增一个支付渠道。只需要增加：`XXXGateway ` 与 `XXXProxy`。
+Através das operações acima, as mudanças foram basicamente completamente encapsuladas. Se adicionar um novo canal de pagamento. Só precisa adicionar: `XXXGateway` e `XXXProxy`.
 
-那么 `Context` 与 `Server` 有什么用呢？`Server` 内部封装了所有的业务逻辑，它提供接口给 action 或者其它 server 进行调用。而 `Context` 这一层存在的价值是处理 `Proxy` 层返回的错误。以及在这里进行报警相关的处理。
+Então, para que servem `Context` e `Server`? `Server` encapsula toda a lógica de negócios internamente e fornece interfaces para action ou outros servers chamarem. E o valor da existência da camada `Context` é lidar com os erros retornados pela camada `Proxy`. E realizar o processamento relacionado a alarmes aqui.
 
-上面的结构只是我的一个实践，欢迎大家讨论。
+A estrutura acima é apenas uma prática minha, discussões são bem-vindas.
 
-本文描述的系统只是满足了最基本的支付需求。缺少相关的监控、报警。如果你按照上文设计自己的系统，风险自担与我无关。
+O sistema descrito neste artigo atende apenas aos requisitos de pagamento mais básicos. Faltam monitoramento e alarme relacionados. Se você projetar seu próprio sistema de acordo com o texto acima, o risco é seu e não tem nada a ver comigo.

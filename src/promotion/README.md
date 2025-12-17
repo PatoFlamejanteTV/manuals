@@ -1,72 +1,72 @@
-# 营销体系
+# Sistema de Marketing
 
-营销体系在一个电商系统中承担着尖刀般的作用，为电商团队拼下无数订单，就如同现实生活中的一线销售人员，引流、促销、提高成单率和客单价。
+O sistema de marketing desempenha um papel de ponta de lança em um sistema de e-commerce, conquistando inúmeros pedidos para a equipe de e-commerce, assim como os vendedores da linha de frente na vida real, atraindo tráfego, promovendo vendas, e aumentando a taxa de conversão e o ticket médio.
 
-一个营销体系拥有各种提升GMV的手段，并且仍然在不断的推陈出新，着实令人敬佩。
+Um sistema de marketing possui vários meios para aumentar o GMV, e continua inovando constantemente, o que é realmente admirável.
 
-## 营销体系拆分
+## Divisão do Sistema de Marketing
 
-按照不同的维度，我们把营销体系划分为两大系统：
+De acordo com diferentes dimensões, dividimos o sistema de marketing em dois grandes sistemas:
 
-系统|描述|维度
+Sistema|Descrição|Dimensão
 ---|---|---
-活动营销系统|拥有各种手段**提升PV\UV**，并引导消费|PV、UV维度
-销售营销系统|拥有各种**降低或变相降低价格**的手段，来促进消费|价格维度
+Sistema de Marketing de Atividades|Possui vários meios para **aumentar PV/UV**, e orientar o consumo|Dimensão PV, UV
+Sistema de Marketing de Vendas|Possui vários meios para **reduzir ou reduzir disfarçadamente o preço**, para promover o consumo|Dimensão Preço
 
-- 活动营销系统：
-    + 抽奖
-        * 按时间抽奖
-        * 按当前活动参与次数抽奖
-        * 按数额区间抽奖
-    + 活动模板
-    + 抢购？？？
-- 销售营销系统：
-    + 满减
-    + 满赠
-    + 买送
-    + 限时购(限时降价或限时折扣)
-    + 秒杀
-    + 加价购
-    + 多买
-    + 预售
-        * 全款预售
-        * 定金(订金)膨胀预售
-        * 盲售
-    + 拼团
-    + 砍价
-    + 众筹
-    + 组合套装
-- 营销体系的基础服务支撑:
-    + 优惠券服务
-        * 满减券
-        * 折扣券
-        * 现金券
-    + 积分服务
+- Sistema de Marketing de Atividades:
+    + Sorteio
+        * Sorteio por tempo
+        * Sorteio por número de participações na atividade atual
+        * Sorteio por intervalo de valor
+    + Modelos de Atividade
+    + Compra Rápida (Flash Buy) ???
+- Sistema de Marketing de Vendas:
+    + Desconto por valor (Man Jian)
+    + Brinde por valor (Man Zeng)
+    + Compra e ganhe (Mai Song)
+    + Compra por tempo limitado (Redução de preço ou desconto por tempo limitado)
+    + Seckill (Oferta Relâmpago)
+    + Compra com acréscimo (Add-on Item)
+    + Compra múltipla (Compre mais pague menos)
+    + Pré-venda
+        * Pré-venda com pagamento integral
+        * Pré-venda com depósito inflacionado (Sinal reembolsável)
+        * Pré-venda cega
+    + Compra em grupo (Group Buying)
+    + Barganha (Haggling)
+    + Crowdfunding
+    + Combo (Pacote combinado)
+- Suporte de Serviços Básicos do Sistema de Marketing:
+    + Serviço de Cupons
+        * Cupom de desconto por valor
+        * Cupom de desconto percentual
+        * Cupom de dinheiro (Cash voucher)
+    + Serviço de Pontos
 
-## 概念定义
+## Definição de Conceitos
 
-营销体系中我们需要把以下概念定义清楚，要使用哪些名词，以及明确其定义，防止沟通过程中的效率低下或理解偏差：
+No sistema de marketing, precisamos definir claramente os seguintes conceitos, quais termos usar e esclarecer suas definições para evitar ineficiência ou desvio de compreensão durante o processo de comunicação:
 
-概念|定义
+Conceito|Definição
 ---|---
-抢购|爆品/新品发售场景
+Compra Rápida (Qiang Gou)|Cenário de lançamento de produtos populares/novos
 ---|---
-满减|单笔订单满多少减多少，例如，“满500减20”
-满赠|单笔订单满多少增送其他商品，例如，“满999送秋裤”
-买送|买就送，例如，“全场下单送秋裤”
-限时购|限定时间区间，降价或折扣
-秒杀|白送价格，数量极少的销售场景，例如，“一元秒杀”
-加价购|再加多少钱，可以低价购买其他推荐商品
-多买|单笔订单购买多个sku，享受折扣
-全款预售|预售库存一次付清
-订金膨胀预售|包含订金阶段、尾款阶段，订金翻倍抵现尾款，订金可退
-定金膨胀预售|包含定金阶段、尾款阶段，定金翻倍抵现尾款，定金不退
-盲售|包含订金(定金)阶段，尾款阶段；不知道尾款价格，不知道sku的具体信息，只知道spu的信息（可选）
-拼团|限定时间凑够多人成功支付订单(享优惠价格)
-砍价(点赞降价)|限定时间邀请好友砍价到指定金额
-众筹|限定时间购买人数达到指定人数及以上即可成功享受优惠价格
-组合套装|多个sku捆绑销售
+Desconto por valor (Man Jian)|Desconto de um valor específico quando o pedido atinge um certo montante, por exemplo, "500 menos 20"
+Brinde por valor (Man Zeng)|Brinde de outros produtos quando o pedido atinge um certo montante, por exemplo, "999 ganha ceroulas"
+Compra e ganhe (Mai Song)|Comprou ganhou, por exemplo, "Faça um pedido em todo o site e ganhe ceroulas"
+Compra por tempo limitado|Intervalo de tempo limitado, redução de preço ou desconto
+Seckill (Oferta Relâmpago)|Preço de "dar de graça", cenário de vendas com quantidade extremamente pequena, por exemplo, "Seckill de 1 real"
+Compra com acréscimo|Adicione mais um valor e compre outros produtos recomendados a um preço baixo
+Compra múltipla|Compre múltiplos skus em um único pedido e desfrute de desconto
+Pré-venda com pagamento integral|Estoque de pré-venda pago integralmente de uma vez
+Pré-venda com depósito inflacionado (Reembolsável)|Inclui fase de depósito, fase de pagamento final; depósito vale o dobro no pagamento final, depósito reembolsável
+Pré-venda com depósito inflacionado (Não reembolsável)|Inclui fase de depósito, fase de pagamento final; depósito vale o dobro no pagamento final, depósito não reembolsável
+Pré-venda cega|Inclui fase de depósito, fase de pagamento final; não sabe o preço final, não sabe informações específicas do sku, sabe apenas informações do spu (opcional)
+Compra em grupo|Reunir pessoas suficientes para pagar o pedido com sucesso dentro de um tempo limitado (aproveitar preço com desconto)
+Barganha (Curtir para baixar preço)|Convidar amigos para barganhar até um valor especificado dentro de um tempo limitado
+Crowdfunding|Número de pessoas que compram atinge o número especificado ou mais dentro de um tempo limitado para desfrutar do preço com desconto com sucesso
+Combo|Venda vinculada de múltiplos skus
 ---|---
-满减券|单笔订单满多少才能使用的优惠券
-折扣券|单笔订单折扣
-现金券|单笔订单抵现金s
+Cupom de desconto por valor|Cupom que só pode ser usado quando o pedido atinge um certo valor
+Cupom de desconto percentual|Desconto percentual em um único pedido
+Cupom de dinheiro|Abatimento em dinheiro em um único pedido

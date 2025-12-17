@@ -1,15 +1,15 @@
-## 前言
+## Prefácio
 
-截止目前为止SkrShop《电商设计手册》系列梳理的内容已经涵盖了如下几大块：
+Até agora, o conteúdo organizado pela série SkrShop "Manual de Design de E-commerce" já abrangeu os seguintes grandes blocos:
 
-- 用户
-- 商品
-- 购物车
-- 营销
-- 支付
-- 基础服务
+- Usuário
+- Produto
+- Carrinho de Compras
+- Marketing
+- Pagamento
+- Serviços Básicos
 
-今天我们准备开启一个新的篇章**订单中心**。
+Hoje estamos prontos para iniciar um novo capítulo: **Centro de Pedidos**.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20201026131854.jpg" data-lightbox="roadtrip">
@@ -17,19 +17,19 @@
     </a>
 </p>
 
-订单中心系列主要内容如下：
+O conteúdo principal da série Centro de Pedidos é o seguinte:
 
-|知识点|
+|Ponto de Conhecimento|
 |-------|
-|订单结算页|
-|创建订单|
-|订单履约|
-|订单状态|
-|订单详情|
-|订单逆向操作|
+|Página de Checkout do Pedido|
+|Criar Pedido|
+|Cumprimento do Pedido|
+|Status do Pedido|
+|Detalhes do Pedido|
+|Operação Reversa do Pedido|
 |...|
 
-首先，我们来回顾下用户平常在电商平台上的购物的一个简单过程，如下图所示：
+Primeiro, vamos revisar um processo simples de compra de usuários em plataformas de e-commerce, conforme mostrado na figura abaixo:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20201015193036.png" data-lightbox="roadtrip">
@@ -37,16 +37,16 @@
     </a>
 </p>
 
-> 所以，今天我们来聊聊什么呢？
+> Então, sobre o que vamos conversar hoje?
 
 ```
-答：今天的这篇文章我们主要就来聊聊上面流程中『订单结算页』的设计与实现。
+Resposta: No artigo de hoje, vamos falar principalmente sobre o design e a implementação da "Página de Checkout do Pedido" no fluxo acima.
 ```
 
 
-## 订单结算页长啥样？
+## Como é a Página de Checkout do Pedido?
 
-我们来看看某东的订单结算页面：
+Vamos ver a página de checkout de pedidos do JD:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200331124724.jpeg" data-lightbox="roadtrip">
@@ -54,7 +54,7 @@
     </a>
 </p>
 
-再来看看某宝的订单结算页面：
+Vamos ver a página de checkout de pedidos do Taobao:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200929124345.jpeg" data-lightbox="roadtrip">
@@ -62,26 +62,26 @@
     </a>
 </p>
 
-通过上面的截图，我们可以大致得出**订单结算页面**的主要页面内容：
+Através das capturas de tela acima, podemos obter aproximadamente o conteúdo principal da **página de checkout de pedido**:
 
-- 用户默认收货地址信息
-- 支付方式选择
-- 店铺&商品信息
-- 商品可选择的配送方式
-- 发票类型选择
-- 优惠信息
-- 订单相关金额
-- 等等
+- Informações de endereço de entrega padrão do usuário
+- Seleção de método de pagamento
+- Informações da loja e do produto
+- Métodos de entrega selecionáveis para o produto
+- Seleção de tipo de fatura
+- Informações de desconto
+- Valor relacionado ao pedido
+- E assim por diante
 
-## 订单结算页面的组成
+## Composição da Página de Checkout do Pedido
 
-> 我一直在思考前端可以模块化，后端接口数据不可以模块化吗？
+> Sempre estive pensando, se o frontend pode ser modular, os dados da interface de backend não podem ser modulares?
 
 ```
-我的答案：是可以的。
+Minha resposta: Sim, podem.
 ```
 
-我们依据上面整理的内容，再通过以往的经验把**订单结算页面**进行模块化拆分和组合，得到如下订单结算页面的**模块化构成**:
+Com base no conteúdo organizado acima, e através da experiência anterior, realizamos a divisão modular e combinação da **página de checkout de pedido**, obtendo a seguinte **composição modular** da página de checkout de pedido:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20201026165711.png" data-lightbox="roadtrip">
@@ -89,58 +89,58 @@
     </a>
 </p>
 
-关于这块代码如何设计，可以参考我的文章[《代码组件 | 我的代码没有else》](http://tigerb.cn/go-patterns/#/?id=%e7%bb%84%e5%90%88%e6%a8%a1%e5%bc%8f)
+Sobre como projetar este código, você pode consultar meu artigo [《Componente de Código | Meu código não tem else》](http://tigerb.cn/go-patterns/#/?id=%e7%bb%84%e5%90%88%e6%a8%a1%e5%bc%8f)
 
-## 订单结算页面各模块分析
+## Análise de cada módulo da página de checkout de pedido
 
-模块编号|模块名称|子模块编号|子模块名称|模块描述
+Número do Módulo|Nome do Módulo|Número do Submódulo|Nome do Submódulo|Descrição do Módulo
 ------------|------------|------------|------------|------------
-1|地址模块|-|-|展示用户最优地址
-2|支付方式模块|-|-|该订单支持的支付方式
-3|店铺模块|-|-|包含店铺信息、商品信息、参与的优惠信息、可选的物流方式、商品售后信息等
-3|-|3.1|商品模块|包含子模块：商品基础信息模块、商品优惠信息模块、售后模块
-3|-|3.2.1|商品基础信息模块|商品的信息，名称、图片、价格、库存等
-3|-|3.2.2|商品优惠信息模块|选择的销售活动优惠选项
-3|-|3.2.3|售后模块|商品享有的售后权益信息
-3|-|3.3|物流模块|可选择的配送方式
-3|-|3.4|店铺商品金额信息模块|-
-4|发票模块|-|-|选择开发票的类型、补充发票信息
-5|优惠券模块|-|-|展示该订单可以使用的优惠券列表
-6|礼品卡模块|-|-|展示可以选择使用礼品卡列表
-7|平台积分模块|-|-|用户可以使用积分抵掉部分现金
-8|订单金额信息模块|-|-|包含该订单的金额明细
+1|Módulo de Endereço|-|-|Exibir o endereço ideal do usuário
+2|Módulo de Método de Pagamento|-|-|Métodos de pagamento suportados por este pedido
+3|Módulo de Loja|-|-|Inclui informações da loja, informações do produto, informações de desconto participantes, métodos de logística opcionais, informações de pós-venda do produto, etc.
+3|-|3.1|Módulo de Produto|Inclui submódulos: módulo de informações básicas do produto, módulo de informações de desconto do produto, módulo de pós-venda
+3|-|3.2.1|Módulo de Informações Básicas do Produto|Informações do produto, nome, imagem, preço, estoque, etc.
+3|-|3.2.2|Módulo de Informações de Desconto do Produto|Opções de desconto de atividade de vendas selecionadas
+3|-|3.2.3|Módulo de Pós-venda|Informações de direitos pós-venda que o produto desfruta
+3|-|3.3|Módulo de Logística|Métodos de entrega selecionáveis
+3|-|3.4|Módulo de Informações de Valor do Produto da Loja|-
+4|Módulo de Fatura|-|-|Selecionar o tipo de fatura, complementar informações da fatura
+5|Módulo de Cupom|-|-|Exibir a lista de cupons que podem ser usados neste pedido
+6|Módulo de Cartão Presente|-|-|Exibir a lista de cartões presente que podem ser selecionados para uso
+7|Módulo de Pontos da Plataforma|-|-|Usuários podem usar pontos para abater parte do dinheiro
+8|Módulo de Informações de Valor do Pedido|-|-|Inclui detalhes do valor deste pedido
 
-## 地址模块
+## Módulo de Endereço
 
-> 展示用户的最优地址
+> Exibir o endereço ideal do usuário
 
-最优地址逻辑：
+Lógica de endereço ideal:
 
-- 首先，用户设置的默认地址
-- 如果没有默认地址，则返回最近下单的地址
+- Primeiro, o endereço padrão definido pelo usuário
+- Se não houver endereço padrão, retornar o endereço do pedido mais recente
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-consignee|string|-|-|收货人姓名
-email|string|-|-|收货人邮箱(返回值用户名部分打码)
-mobile|string|-|-|收货人手机号(返回值中间四位打码)
-country|object|id|int64|国家ID
-country|object|name|string|国家名称
-province|object|id|int64|省ID
-province|object|name|string|省名称
-city|object|id|int64|市ID
-city|object|name|string|市名称
-county|object|id|int64|区县ID
-county|object|name|string|区县名称
-street|object|id|int64|街道乡镇ID
-street|object|name|string|街道乡镇名称
-detailed_address|string|-|-|详细地址(用户手填)
-postal_code|string|-|-|邮编
-address_id|int64|-|-|地址ID
-is_default|bool|-|-|是否是默认地址
-label|string|-|-|地址类型标签，家、公司等
-longitude|string|-|-|经度
-latitude|string|-|-|纬度
+consignee|string|-|-|Nome do destinatário
+email|string|-|-|E-mail do destinatário (parte do nome de usuário mascarada no valor de retorno)
+mobile|string|-|-|Número de celular do destinatário (quatro dígitos do meio mascarados no valor de retorno)
+country|object|id|int64|ID do País
+country|object|name|string|Nome do País
+province|object|id|int64|ID da Província
+province|object|name|string|Nome da Província
+city|object|id|int64|ID da Cidade
+city|object|name|string|Nome da Cidade
+county|object|id|int64|ID do Distrito/Condado
+county|object|name|string|Nome do Distrito/Condado
+street|object|id|int64|ID da Rua/Vila
+street|object|name|string|Nome da Rua/Vila
+detailed_address|string|-|-|Endereço detalhado (preenchido manualmente pelo usuário)
+postal_code|string|-|-|CEP
+address_id|int64|-|-|ID do Endereço
+is_default|bool|-|-|Se é o endereço padrão
+label|string|-|-|Rótulo do tipo de endereço, casa, empresa, etc.
+longitude|string|-|-|Longitude
+latitude|string|-|-|Latitude
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20201010203421.png" data-lightbox="roadtrip">
@@ -148,58 +148,58 @@ latitude|string|-|-|纬度
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "address_module": {
-        "consignee": "收货人姓名",
-        "email": "收货人邮箱(返回值用户名部分打码)",
-        "mobile": "收货人手机号(返回值中间四位打码)",
+        "consignee": "Nome do Destinatário",
+        "email": "E-mail do destinatário (parte do nome de usuário mascarada)",
+        "mobile": "Celular do destinatário (quatro dígitos do meio mascarados)",
         "country": {
             "id": 666,
-            "name": "国家名称"
+            "name": "Nome do País"
         },
         "province": {
             "id": 12123,
-            "name": "省名称"
+            "name": "Nome da Província"
         },
         "city": {
             "id": 212333,
-            "name": "市名称"
+            "name": "Nome da Cidade"
         },
         "county": {
             "id": 1233222,
-            "name": "区县名称"
+            "name": "Nome do Distrito"
         },
         "street": {
             "id": 9989999,
-            "name": "街道乡镇名称"
+            "name": "Nome da Rua"
         },
-        "detailed_address": "详细地址(用户手填)",
-        "postal_code": "邮编",
+        "detailed_address": "Endereço detalhado (preenchido manualmente)",
+        "postal_code": "CEP",
         "address_id": 212399999393,
         "is_default": false,
-        "label": "地址类型标签，家、公司等",
-        "longitude": "经度",
-        "latitude": "纬度"
+        "label": "Rótulo do tipo de endereço, casa, empresa, etc.",
+        "longitude": "Longitude",
+        "latitude": "Latitude"
     }
 }
 ```
 
-## 支付方式模块
+## Módulo de Método de Pagamento
 
-> 该订单支持的支付方式
+> Métodos de pagamento suportados por este pedido
 
-支付方式选项：
+Opções de método de pagamento:
 
-- 在线支付
-- 货到付款
+- Pagamento Online
+- Pagamento na Entrega
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-pay_method_list|array|id|int|支付方式ID
-pay_method_list|array|name|string|支付方式名称
-pay_method_list|array|desc|string|支付方式描述
+pay_method_list|array|id|int|ID do método de pagamento
+pay_method_list|array|name|string|Nome do método de pagamento
+pay_method_list|array|desc|string|Descrição do método de pagamento
 
 
 <p align="center">
@@ -208,38 +208,38 @@ pay_method_list|array|desc|string|支付方式描述
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "pay_method_module": {
         "pay_method_list": [
             {
                 "id": 1,
-                "name": "在线支付",
-                "desc": "在线支付的描述"
+                "name": "Pagamento Online",
+                "desc": "Descrição do pagamento online"
             },
             {
                 "id": 2,
-                "name": "货到付款",
-                "desc": "货到付款的描述"
+                "name": "Pagamento na Entrega",
+                "desc": "Descrição do pagamento na entrega"
             }
         ]
     }   
 }
 ```
 
-## 店铺模块
+## Módulo de Loja
 
-> 包含店铺信息、商品信息、参与的优惠信息、可选的物流方式、商品售后信息等
+> Inclui informações da loja, informações do produto, informações de desconto participantes, métodos de logística opcionais, informações de pós-venda do produto, etc.
 
-店铺模块由如下子模块组成：
+O módulo de loja é composto pelos seguintes submódulos:
 
-- 商品模块
-    + 商品基础信息模块
-    + 商品优惠信息模块
-    + 售后模块
-- 商品物流模块
-- 店铺商品总金额信息模块
+- Módulo de Produto
+    + Módulo de informações básicas do produto
+    + Módulo de informações de desconto do produto
+    + Módulo de pós-venda
+- Módulo de Logística do Produto
+- Módulo de Informações de Valor Total do Produto da Loja
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20201014203138.png" data-lightbox="roadtrip">
@@ -247,22 +247,22 @@ pay_method_list|array|desc|string|支付方式描述
     </a>
 </p>
 
-由于此处内容比较多我们之后再来单独分析。
+Devido à grande quantidade de conteúdo aqui, analisaremos separadamente mais tarde.
 
-## 发票模块
+## Módulo de Fatura
 
-> 用户选择开发票的类型以及补充发票信息
+> O usuário seleciona o tipo de fatura e complementa as informações da fatura
 
-选择开发票的类型：
+Selecionar tipo de fatura:
 
-- 个人
-- 单位
+- Pessoal
+- Unidade (Empresa)
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-type_id|int|-|-|发票类型：个人；单位
-type_name|string|-|-|发票类型名称
-type_desc|string|-|-|发票类型描述
+type_id|int|-|-|Tipo de fatura: Pessoal; Unidade
+type_name|string|-|-|Nome do tipo de fatura
+type_desc|string|-|-|Descrição do tipo de fatura
 
 
 <p align="center">
@@ -271,49 +271,49 @@ type_desc|string|-|-|发票类型描述
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "invoice_module": {
         "type_list": [
             {
                 "type_id": 1,
-                "type_name": "个人",
-                "type_desc": "描述"
+                "type_name": "Pessoal",
+                "type_desc": "Descrição"
             },
             {
                 "type_id": 2,
-                "type_name": "公司",
-                "type_desc": "描述"
+                "type_name": "Empresa",
+                "type_desc": "Descrição"
             }
         ]
     }
 }
 ```
 
-## 优惠券模块
+## Módulo de Cupom
 
-> 返回该订单可以使用的优惠券列表，以及默认选择对于当前订单而言的最优优惠券
+> Retorna a lista de cupons que podem ser usados neste pedido, bem como o cupom ideal selecionado por padrão para o pedido atual
 
-- 展示用户的优惠券列表：当前订单可用的排最前面其他放最后面
-- 默认选中最优优惠券：对于当前订单优惠力度最大的一张优惠券
+- Exibir lista de cupons do usuário: disponíveis para o pedido atual no topo, outros no final
+- Seleção padrão do cupom ideal: o cupom com o maior desconto para o pedido atual
 
-关于优惠券的其他内容可以阅读优惠券章节内容。
+Para outros conteúdos sobre cupons, você pode ler o capítulo sobre Cupons.
 
-## 礼品卡模块
+## Módulo de Cartão Presente
 
-> 展示可以选择使用礼品卡列表
+> Exibir a lista de cartões presente que podem ser selecionados para uso
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-giftcard_list|array|id|int64|礼品卡id
-giftcard_list|array|name|string|礼品卡名称
-giftcard_list|array|desc|string|礼品卡描述
-giftcard_list|array|pic_url|string|礼品卡图片
-giftcard_list|array|total_amount|float64|礼品卡初始总金额
-giftcard_list|array|total_amount_txt|string|礼品卡初始总金额-格式化后
-giftcard_list|array|remaining_amount|float64|礼品卡剩余金额
-giftcard_list|array|remaining_amount_txt|string|礼品卡剩余金额-格式化后
+giftcard_list|array|id|int64|id do cartão presente
+giftcard_list|array|name|string|Nome do cartão presente
+giftcard_list|array|desc|string|Descrição do cartão presente
+giftcard_list|array|pic_url|string|Imagem do cartão presente
+giftcard_list|array|total_amount|float64|Valor total inicial do cartão presente
+giftcard_list|array|total_amount_txt|string|Valor total inicial do cartão presente - formatado
+giftcard_list|array|remaining_amount|float64|Valor restante do cartão presente
+giftcard_list|array|remaining_amount_txt|string|Valor restante do cartão presente - formatado
 
 
 <p align="center">
@@ -322,16 +322,16 @@ giftcard_list|array|remaining_amount_txt|string|礼品卡剩余金额-格式化�
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "giftcard_module": {
         "giftcard_list": [
             {
                 "id": 341313121,
-                "name": "礼品卡名称",
-                "desc": "礼品卡描述",
-                "pic_url": "礼品卡图片",
+                "name": "Nome do Cartão Presente",
+                "desc": "Descrição do Cartão Presente",
+                "pic_url": "Imagem do Cartão Presente",
                 "total_amount": 100.00,
                 "total_amount_txt": "100.00",
                 "remaining_amount": 21.00,
@@ -342,22 +342,22 @@ giftcard_list|array|remaining_amount_txt|string|礼品卡剩余金额-格式化�
 }
 ```
 
-## 平台积分模块
+## Módulo de Pontos da Plataforma
 
-> 用户可以使用积分抵现
+> Usuários podem usar pontos para abater dinheiro
 
-比如上线某东订单结算页面中的京豆。
+Por exemplo, os Jingdou na página de checkout de pedidos do JD.
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-order_amount_min|float64|-|-|可使用积分抵现功能的订单金额下限
-total_points|int64|-|-|用户总积分
-can_use_points|int64|-|-|可使用的积分(可能存在冻结的积分)
-points2money_rate|int|-|-|积分转换为现金比率，比如每100积分抵1元，最低1积分抵0.01元
-points2money_min|int|-|-|用户最少满多少积分才可使用积分抵现
-points2money_max|int|-|-|单笔订单 最多可以使用积分的上限
-points_amount|float64|-|-|该订单积分可抵扣金额
-points_amount_txt|string|-|-|该订单积分可抵扣金额-格式化后
+order_amount_min|float64|-|-|Limite inferior do valor do pedido para usar a função de abatimento por pontos
+total_points|int64|-|-|Total de pontos do usuário
+can_use_points|int64|-|-|Pontos utilizáveis (pode haver pontos congelados)
+points2money_rate|int|-|-|Taxa de conversão de pontos para dinheiro, por exemplo, cada 100 pontos valem 1 yuan, mínimo de 1 ponto vale 0,01 yuan
+points2money_min|int|-|-|Mínimo de pontos que o usuário deve ter para usar o abatimento por pontos
+points2money_max|int|-|-|Limite máximo de pontos que podem ser usados em um único pedido
+points_amount|float64|-|-|Valor que pode ser abatido por pontos neste pedido
+points_amount_txt|string|-|-|Valor que pode ser abatido por pontos neste pedido - formatado
 
 
 <p align="center">
@@ -366,7 +366,7 @@ points_amount_txt|string|-|-|该订单积分可抵扣金额-格式化后
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "points_module": {
@@ -382,23 +382,23 @@ points_amount_txt|string|-|-|该订单积分可抵扣金额-格式化后
 }
 ```
 
-## 订单金额信息模块
+## Módulo de Informações de Valor do Pedido
 
-> 包含该订单的金额明细
+> Inclui detalhes do valor deste pedido
 
-字段名称|类型|下级字段名称|类型|字段含义
+Nome do Campo|Tipo|Nome do Campo Inferior|Tipo|Significado do Campo
 ------|------|------|------|------
-skus_amount|float64|-|-|商品的总金额
-promotion_amount|float64|-|-|优惠的总金额
-freight|float64|-|-|运费
-final_amount|float64|-|-|支付金额
-promotion_detail|object|coupon_amount|float64|优惠券优惠金额
-promotion_detail|object|sales_activity_amount|float64|销售活动优惠金额
-promotion_detail|object|giftcard_amount|float64|礼品卡使用金额
-promotion_detail|object|points_amount|float64|该订单积分抵扣金额
+skus_amount|float64|-|-|Valor total dos produtos
+promotion_amount|float64|-|-|Valor total de descontos
+freight|float64|-|-|Frete
+final_amount|float64|-|-|Valor a pagar
+promotion_detail|object|coupon_amount|float64|Valor de desconto do cupom
+promotion_detail|object|sales_activity_amount|float64|Valor de desconto da atividade de vendas
+promotion_detail|object|giftcard_amount|float64|Valor usado do cartão presente
+promotion_detail|object|points_amount|float64|Valor abatido por pontos neste pedido
 
 ```
-_txt字段略
+Campo _txt omitido
 ```
 
 <p align="center">
@@ -407,7 +407,7 @@ _txt字段略
     </a>
 </p>
 
-模块数据demo：
+Demo de dados do módulo:
 ```json
 {
     "order_amount_module": {
@@ -433,6 +433,6 @@ _txt字段略
 }
 ```
 
-## 结语
+## Conclusão
 
-如上，订单结算页面的内容基本介绍完毕了，有任何问题随时到我们的github项目下留言 <https://github.com/skr-shop/manuals/issues>。
+Acima, a introdução básica do conteúdo da página de checkout do pedido foi concluída. Se você tiver alguma dúvida, sinta-se à vontade para deixar uma mensagem em nosso projeto no github <https://github.com/skr-shop/manuals/issues>.

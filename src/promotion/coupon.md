@@ -1,39 +1,39 @@
-# 优惠券服务
+# Serviço de Cupons
 
-## 前言
+## Prefácio
 
-进入正题，营销体系的基础服务「优惠券服务」。通过如下问题来介绍优惠券：
+Entrando no tópico principal, o serviço básico do sistema de marketing: "Serviço de Cupons". Apresentamos os cupons através das seguintes perguntas:
 
-- 优惠券有**哪些类型**？
-- 优惠券有**哪些适用范围**？
-- 优惠券有**哪些常见的场景**？
-- 优惠券本身应该有**哪些状态**?
-- 优惠券服务要有**哪些服务能力**？
-- 优惠券服务的**风控**怎么做？
+- Quais são os **tipos** de cupons?
+- Quais são os **escopos de aplicação** dos cupons?
+- Quais são os **cenários comuns** para cupons?
+- Quais **status** o próprio cupom deve ter?
+- Quais **capacidades de serviço** o serviço de cupons deve ter?
+- Como fazer o **controle de risco** do serviço de cupons?
 
-## 优惠券有哪些类型？
+## Quais são os tipos de cupons?
 
-对于获取优惠券的用户而言，关注的是优惠券的优惠能力，所以按优惠能力维度优惠券主要分为下面三类：
+Para os usuários que obtêm cupons, o foco está na capacidade de desconto do cupom, portanto, de acordo com a dimensão da capacidade de desconto, os cupons são divididos principalmente nas três categorias a seguir:
 
-优惠能力维度|描述
+Dimensão da capacidade de desconto|Descrição
 ------------|------------
-满减券|满多少金额(不含邮费)可以减多少金额
-现金券|抵扣多少现金(无门槛)
-抵扣券|抵扣某Sku全部金额(一个数量)
-折扣券|打折
+Cupom de desconto por valor (Man Jian)|Quanto desconto em valor pode ser obtido ao atingir um certo montante (excluindo frete)
+Cupom de dinheiro (Cash)|Quanto dinheiro pode ser deduzido (sem limite mínimo)
+Cupom de dedução|Deduz o valor total de um determinado Sku (uma quantidade)
+Cupom de desconto percentual|Desconto percentual
 
-对于发放优惠券的运营人员而言：
+Para o pessoal de operação que emite cupons:
 
-一种是「**固定有效期**」，优惠券的生效时间戳和过期时间戳，在创建优惠券的时候已经确定。用户在任意时间领取该券，该券的有效时间都是之前设置的有效时间的开始结束时间。
+Um tipo é "**Validade fixa**", os carimbos de data/hora de início e expiração do cupom já estão determinados quando o cupom é criado. Independentemente de quando o usuário retira o cupom, o tempo de validade do cupom é o tempo de início e fim da validade definido anteriormente.
 
-另一种是「**动态有效期**」，创建优惠券设置的是有效时间段，比如7天有效时间、12小时有效时间等。这类优惠券以用户领取优惠券的时间为优惠券的有效时间的开始时间，以以用户领取优惠券的时间+有效时间为有效时间的结束时间。
+O outro tipo é "**Validade dinâmica**", ao criar o cupom, define-se um período de validade, como 7 dias de validade, 12 horas de validade, etc. Para esses cupons, o tempo de início da validade é o momento em que o usuário retira o cupom, e o tempo de término da validade é o momento em que o usuário retira o cupom + o tempo de validade.
 
-有效期维度|优惠券类型|优惠券生效时间|优惠券失效时间|描述
+Dimensão da validade|Tipo de cupom|Tempo de início do cupom|Tempo de expiração do cupom|Descrição
 ------------|------------|------------|------------|------------
-固定|固定有效期|优惠券类型被创建时已确定|优惠券类型被创建时已确定|无论用户什么时间领取该优惠券，优惠券生效的时间都是设置好的统一时间
-动态|动态有效期|用户领取优惠券时，当前时间戳|用户领取优惠券时，当前时间戳 + N\*24\*60\*60|优惠券类型被创建时，只确定了该优惠券的有效，例如6小时、7天、一个月
+Fixa|Validade fixa|Determinado quando o tipo de cupom é criado|Determinado quando o tipo de cupom é criado|Independentemente de quando o usuário retira o cupom, o tempo de validade do cupom é o tempo unificado definido
+Dinâmica|Validade dinâmica|Quando o usuário retira o cupom, timestamp atual|Quando o usuário retira o cupom, timestamp atual + N\*24\*60\*60|Quando o tipo de cupom é criado, apenas a validade do cupom é determinada, por exemplo, 6 horas, 7 dias, um mês
 
-小结如下：
+O resumo é o seguinte:
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-type.png" target="_blank">
@@ -42,48 +42,48 @@
 </p>
 
 
-## 优惠券有哪些适用范围？
+## Quais são os escopos de aplicação dos cupons?
 
-### 运营策略
+### Estratégia de Operação
 
-限制纬度|限制细节|描述
+Dimensão de Restrição|Detalhes da Restrição|Descrição
 ------------|------------|------------
-商品纬度||
-|(非)指定Sku|Sku券
-|(非)指定Spu|Spu券
-|(非)指定类别|类别券
-平台纬度||
-|指定店铺|店铺券
-|全场通用|平台券
+Dimensão do Produto||
+|(Não) Sku Especificado|Cupom de Sku
+|(Não) Spu Especificado|Cupom de Spu
+|(Não) Categoria Especificada|Cupom de Categoria
+Dimensão da Plataforma||
+|Loja Especificada|Cupom de Loja
+|Uso Geral em Todo o Site|Cupom de Plataforma
 
-### 适用终端
+### Terminais Aplicáveis
 
-适用终端(复选框)|描述
+Terminais Aplicáveis (Checkbox)|Descrição
 ------------|------------
-Android|安卓端
-iOS|iOS端
-PC|网页电脑端
-Mobile|网页手机端
-Wechat|微信端
-微信小程序|微信小程序
-All|以上所有
+Android|Terminal Android
+iOS|Terminal iOS
+PC|Terminal Web PC
+Mobile|Terminal Web Mobile
+Wechat|Terminal WeChat
+Mini Programa WeChat|Mini Programa WeChat
+All|Todos os acima
 
-### 支付方式
+### Métodos de Pagamento
 
-支付类型|描述
+Tipo de Pagamento|Descrição
 ------------|------------
-货到付款|
-在线支付|支付宝/微信/银联
+Pagamento na Entrega|
+Pagamento Online|Alipay/WeChat/UnionPay
 All|
 
-### 适用人群
+### Público Aplicável
 
-适用人群|描述
+Público Aplicável|Descrição
 ------------|------------
-白名单|测试用户
-会员|会员专属
+Whitelist|Usuários de Teste
+Membro|Exclusivo para Membros
 
-小结如下：
+O resumo é o seguinte:
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-scope.jpg" target="_blank">
@@ -94,58 +94,58 @@ All|
 
 
 
-## 优惠券有哪些常见的场景？
+## Quais são os cenários comuns para cupons?
 
-### 领取优惠券场景
+### Cenários de Retirada de Cupons
 
-领取优惠券场景|描述
+Cenário de Retirada de Cupons|Descrição
 ------------|------------
-活动页面|大促、节假日活动页面展示获取优惠券的按钮
-游戏页面|通过游戏获取优惠券
-店铺首页|店铺首页展示领券入口
-商品详情|商品详情页面展示领券入口
-积分中心|积分兑换优惠券
+Página de Atividade|Botão para obter cupons exibido em páginas de grandes promoções e feriados
+Página de Jogo|Obter cupons através de jogos
+Página Inicial da Loja|Entrada para retirada de cupons exibida na página inicial da loja
+Detalhes do Produto|Entrada para retirada de cupons exibida na página de detalhes do produto
+Centro de Pontos|Troca de pontos por cupons
 
-### 展示优惠券场景
+### Cenários de Exibição de Cupons
 
-展示优惠券场景|描述
+Cenário de Exibição de Cupons|Descrição
 ------------|------------
-活动页面|大促、节假日活动页面展示可以领取的优惠券
-商品详情|商品详情页面展示可以领取、可以使用的优惠券列表
-个人中心-我的优惠券|我的优惠券列表
-订单结算页面|结算页面，适用该订单的优惠券列表以及推荐
-积分中心|展示可以兑换的优惠券详情
+Página de Atividade|Exibição de cupons que podem ser retirados em páginas de grandes promoções e feriados
+Detalhes do Produto|Lista de cupons que podem ser retirados e usados exibida na página de detalhes do produto
+Centro Pessoal - Meus Cupons|Minha lista de cupons
+Página de Checkout do Pedido|Lista de cupons aplicáveis a este pedido e recomendações na página de checkout
+Centro de Pontos|Exibição de detalhes de cupons que podem ser trocados
 
 
-### 选择优惠券场景
+### Cenários de Seleção de Cupons
 
-选择优惠券场景|描述
+Cenário de Seleção de Cupons|Descrição
 ------------|------------
-商品详情|商品详情页面展示该用户已有的，且适用于该商品的优惠券
-订单结算页面-优惠券列表|选择可用优惠券结算
-订单结算页面-输入优惠码|输入优惠码结算
+Detalhes do Produto|Exibição de cupons que o usuário já possui e são aplicáveis a este produto na página de detalhes do produto
+Página de Checkout do Pedido - Lista de Cupons|Seleção de cupom disponível para checkout
+Página de Checkout do Pedido - Inserir Código de Cupom|Inserir código de cupom para checkout
 
-### 返还优惠券场景
+### Cenários de Devolução de Cupons
 
-返还优惠券场景|描述
+Cenário de Devolução de Cupons|Descrição
 ------------|------------
-未支付订单取消|未支付的订单，用户主动取消返还优惠券，或超时关单返还优惠券
-已支付订单全款取消|已支付(未收货)的订单，订单部分退款不返还，当整个订单全部退款返还优惠券
+Cancelamento de Pedido Não Pago|Pedidos não pagos, usuário cancela ativamente para devolver o cupom, ou fechamento de pedido por tempo limite devolve o cupom
+Cancelamento de Pedido Pago Integralmente|Pedidos pagos (não recebidos), reembolso parcial do pedido não devolve, quando todo o pedido é reembolsado, o cupom é devolvido
 
-### 优惠券获取场景示例
+### Exemplos de Cenários de Obtenção de Cupons
 
-场景示例|描述
+Exemplo de Cenário|Descrição
 ------------|------------
-活动页领券|大促、节假日活动页面展示获取优惠券的按钮
-游戏发券|游戏奖励
-商品页领券|-
-店铺页领券|-
-购物返券|购买某个Sku，订单妥投后发放优惠券
-新用户发券|新用户注册发放优惠券
-积分兑券|积分换取优惠券
-评论返券|用户订单收货之后，添加评论(审核后)，给用户返回一张指定优惠券
+Retirada de Cupom na Página de Atividade|Botão para obter cupons exibido em páginas de grandes promoções e feriados
+Emissão de Cupom em Jogo|Recompensa de jogo
+Retirada de Cupom na Página do Produto|-
+Retirada de Cupom na Página da Loja|-
+Retorno de Cupom na Compra|Após a compra de um determinado Sku e a entrega do pedido, um cupom é emitido
+Emissão de Cupom para Novo Usuário|Emissão de cupom ao registrar novo usuário
+Troca de Pontos por Cupom|Troca de pontos por cupons
+Retorno de Cupom por Comentário|Após o usuário receber o pedido e adicionar um comentário (após revisão), um cupom especificado é devolvido ao usuário
 
-小结如下：
+O resumo é o seguinte:
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-scene.jpg" target="_blank">
@@ -154,7 +154,7 @@ All|
 </p>
 
 
-## 优惠券本身应该有哪些状态？
+## Quais status o próprio cupom deve ter?
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-status.jpg" target="_blank">
@@ -163,75 +163,75 @@ All|
 </p>
 
 
-## 优惠券服务要有哪些服务能力？
+## Quais capacidades de serviço o serviço de cupons deve ter?
 
-### 服务能力1: 发放优惠券
+### Capacidade de Serviço 1: Emissão de Cupons
 
-发放方式|描述
+Método de Emissão|Descrição
 ------------|------------
-同步发放|适用于用户点击领券等实时性要求较高的获取券场景
-异步发放|适用于实时性要求不高的发放券场景，比如新用户注册发券等场景
+Emissão Síncrona|Aplicável a cenários de obtenção de cupons com altos requisitos de tempo real, como o usuário clicando para retirar cupons
+Emissão Assíncrona|Aplicável a cenários de emissão de cupons com baixos requisitos de tempo real, como emissão de cupons para registro de novos usuários
 
-发放能力|描述
+Capacidade de Emissão|Descrição
 ------------|------------
-单张发放|指定一个优惠券类型ID，且指定一个UID只发一张该券
-批量发放|指定一个优惠券类型ID，且指定一批UID，每个UID只发一张该券
+Emissão Única|Especificar um ID de tipo de cupom e um UID para emitir apenas um cupom
+Emissão em Lote|Especificar um ID de tipo de cupom e um lote de UIDs, cada UID recebe apenas um cupom
 
-发放类型|描述
+Tipo de Emissão|Descrição
 ------------|------------
-优惠券类型标识|通过该优惠券类型的身份标识发放，比如创建一个优惠券类型时会生成一个16位标识码，用户通过`16位标识码`领取优惠券；这里不使用自增ID(避免对外泄露历史创建了的优惠券数量)
-优惠码code|创建一个优惠券类型时，运营人员会给该券填写一个6位左右的Ascall码，比如`SKR6a6`，用户通过该码领取优惠券
+Identificador de Tipo de Cupom|Emitido através do identificador de identidade do tipo de cupom, por exemplo, ao criar um tipo de cupom, um código de identificação de 16 dígitos será gerado, e o usuário retira o cupom através do `código de identificação de 16 dígitos`; ID auto-incremental não é usado aqui (para evitar vazar o número de cupons criados historicamente para o exterior)
+Código Promocional (Code)|Ao criar um tipo de cupom, a equipe de operação preencherá um código Ascii de cerca de 6 dígitos para o cupom, como `SKR6a6`, e o usuário retira o cupom através desse código
 
-### 服务能力2: 后台撤销优惠券
+### Capacidade de Serviço 2: Revogação de Cupons no Backend
 
-撤销能力|描述
+Capacidade de Revogação|Descrição
 ------------|------------
-单张撤销|指定一个优惠券ID，且指定一个UID，校验归属是否合法，之后撤销一张券
-批量撤销|指定一个优惠券类型ID，且指定一批UID，每个UID撤销一张该券
+Revogação Única|Especificar um ID de cupom e um UID, verificar se a propriedade é legal e depois revogar um cupom
+Revogação em Lote|Especificar um ID de tipo de cupom e um lote de UIDs, revogar um cupom para cada UID
 
-### 服务能力3: 伴随订单系统进行状态变更
+### Capacidade de Serviço 3: Mudança de Status Acompanhando o Sistema de Pedidos
 
-| 变更类型 | 描述                                 |
+| Tipo de Mudança | Descrição                                 |
 | -------- | ------------------------------------ |
-| 冻结     | 成单时对优惠券进行订单绑定占用       |
-| 解冻     | 用户未支付前取消订单，解冻归还优惠券 |
-| 核销     | 将已经冻结的优惠券标记为已使用       |
+| Congelar     | Vincular e ocupar o cupom ao fazer o pedido       |
+| Descongelar     | Cancelar o pedido antes do pagamento do usuário, descongelar e devolver o cupom |
+| Baixar (Write-off)     | Marcar o cupom congelado como usado       |
 
-| 变更能力           | 描述                                                 |
+| Capacidade de Mudança           | Descrição                                                 |
 | ------------------ | ---------------------------------------------------- |
-| 单张冻结/解冻/核销 | 指定一个优惠券ID，一个订单 ID，更改优惠券状态        |
-| 批量冻结/解冻/核销 | 指定一个优惠券ID与订单 ID 的映射，进行优惠券状态变更 |
+| Congelar/Descongelar/Baixar Único | Especificar um ID de cupom, um ID de pedido, alterar o status do cupom        |
+| Congelar/Descongelar/Baixar em Lote | Especificar um mapeamento de IDs de cupons e IDs de pedidos, realizar alteração de status do cupom |
 
-### 服务能力4: 列表查询优惠券
+### Capacidade de Serviço 4: Consulta de Lista de Cupons
 
-用户优惠券列表|子类|描述
+Lista de Cupons do Usuário|Subclasse|Descrição
 ------------|------------|------------
-全部|-|查询该用户所有的优惠券
-可以使用|全部|查询该用户所有可以使用的优惠券
--|适用于某个spu或sku|查询该用户适用于某个spu或sku可以使用的优惠券
--|适用于某个类别|查询该用户适用于某个类别可以使用的优惠券
--|适用于某个店铺|查询该用户适用于某个店铺可以使用的优惠券
-已用|全部|查询该用户所有已经使用的优惠券
--|正常使用|查询该用户所有履约完成的订单中使用的优惠券
--|订单冻结|查询该用户所有未关闭订单中被冻结的优惠券
-无效|全部|查询该用户拥有，但是不可用的优惠券
--|过期|查询该用户所有过期的优惠券
--|失效|查询该用户所有后台冻结的优惠券
+Todos|-|Consultar todos os cupons deste usuário
+Utilizáveis|Todos|Consultar todos os cupons que este usuário pode usar
+-|Aplicável a um determinado spu ou sku|Consultar cupons utilizáveis deste usuário aplicáveis a um determinado spu ou sku
+-|Aplicável a uma determinada categoria|Consultar cupons utilizáveis deste usuário aplicáveis a uma determinada categoria
+-|Aplicável a uma determinada loja|Consultar cupons utilizáveis deste usuário aplicáveis a uma determinada loja
+Usados|Todos|Consultar todos os cupons que este usuário já usou
+-|Uso Normal|Consultar cupons usados em todos os pedidos concluídos deste usuário
+-|Congelado em Pedido|Consultar cupons congelados em todos os pedidos não fechados deste usuário
+Inválidos|Todos|Consultar cupons que este usuário possui, mas não estão disponíveis
+-|Expirado|Consultar todos os cupons expirados deste usuário
+-|Invalidado|Consultar todos os cupons deste usuário congelados pelo backend
 
-### 服务能力5: 条件查询优惠券
+### Capacidade de Serviço 5: Consulta Condicional de Cupons
 
-有两种场景的条件查询
+Existem dois cenários de consulta condicional
 
-1. 商品/店铺展示页面可以展示此商品/店铺 已经领取/可以领取的券的集合
-2. 下单时根据商品/店铺/支付方式过滤出当前可用的优惠券集合
+1. A página de exibição de produto/loja pode exibir a coleção de cupons já retirados/que podem ser retirados para este produto/loja
+2. Filtrar a coleção de cupons disponíveis atualmente com base no produto/loja/método de pagamento ao fazer o pedido
 
-注：活动页券集合一般会搭配相应的运营系统自定义，不在此列
+Nota: A coleção de cupons da página de atividade geralmente é personalizada com o sistema de operação correspondente e não está incluída aqui
 
-### 服务能力6: 结算页优惠券推荐
+### Capacidade de Serviço 6: Recomendação de Cupom na Página de Checkout
 
-订单结算页面推荐一张最适合(金额)该订单的优惠券
+Recomendar o cupom mais adequado (valor) para o pedido na página de checkout do pedido
 
-小结如下：
+O resumo é o seguinte:
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-serve.jpg" target="_blank">
@@ -240,47 +240,46 @@ All|
 </p>
 
 
-## 优惠券服务的风控怎么做？
+## Como fazer o controle de risco do serviço de cupons?
 
-一旦有发生风险的可能则触发风控：
+Uma vez que haja a possibilidade de risco, o controle de risco é acionado:
 
-- 对用户，提示稍后再试或联系客服 
-- 对内部，报警提示，核查校验报警是否存在问题 
+- Para o usuário, sugerir tentar novamente mais tarde ou entrar em contato com o atendimento ao cliente
+- Para o interno, alerta de alarme, verificar se há problema com o alarme
 
-### 频率限制
+### Limite de Frequência
 
-领取|描述
+Retirada|Descrição
 ------------|------------
-设备ID|每天领取某优惠券的个数限制
-UID|每天领取某优惠券的个数限制
-IP|每天领取某优惠券的个数限制
+ID do Dispositivo|Limite de número de retiradas de um determinado cupom por dia
+UID|Limite de número de retiradas de um determinado cupom por dia
+IP|Limite de número de retiradas de um determinado cupom por dia
 
-使用|描述
+Uso|Descrição
 ------------|------------
-设备ID|每天使用某优惠券的个数限制
-UID|每天使用某优惠券的个数限制
-IP|每天使用某优惠券的个数限制
-手机号|每天使用某优惠券的个数限制
-邮编|比如注重邮编的海外地区，每天使用某优惠券的个数限制
+ID do Dispositivo|Limite de número de uso de um determinado cupom por dia
+UID|Limite de número de uso de um determinado cupom por dia
+IP|Limite de número de uso de um determinado cupom por dia
+Número de Celular|Limite de número de uso de um determinado cupom por dia
+Código Postal|Por exemplo, em regiões ultramarinas que focam em códigos postais, limite de número de uso de um determinado cupom por dia
 
-### 用户风险等级
+### Nível de Risco do Usuário
 
-依托用户历史订单数据，得到用户成功完成交易(比如成功妥投15天+)的比率，根据此比率对用户进行等级划分，高等级进入通行Unblock名单，低等级进入Block名单，根据不同用户级别设置限制策略。等其他大数据分析手段。
+Com base nos dados históricos de pedidos do usuário, obter a taxa de conclusão bem-sucedida de transações do usuário (por exemplo, entrega bem-sucedida 15 dias+). Classificar os usuários com base nessa taxa, níveis altos entram na lista Unblock, níveis baixos entram na lista Block, e definir estratégias de restrição de acordo com diferentes níveis de usuário. E outros meios de análise de big data.
 
-### 阈值
+### Limiar
 
-- 发券预算
-- 实际使用券预算
+- Orçamento de emissão de cupons
+- Orçamento de uso real de cupons
 
-根据预算值设置发券总数阈值，当触发阈值时阻断并报警。
+Definir o limiar total de emissão de cupons com base no valor do orçamento. Quando o limiar for acionado, bloquear e alarmar.
 
-### 优惠券不要支持虚拟商品
+### Cupons não devem suportar produtos virtuais
 
-优惠券尽量不要支持虚拟商品以防止可能被利用的不法活动。
+Cupons devem tentar não suportar produtos virtuais para evitar atividades ilegais que possam ser exploradas.
 
 <p align="center">
     <a href="http://cdn.veaer.com/coupon-control.png" target="_blank">
         <img src="http://cdn.veaer.com/coupon-control.png" width="80%">
     </a>
 </p>
-
