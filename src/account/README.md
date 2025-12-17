@@ -1,17 +1,17 @@
-# 用户体系
+# Sistema de Usuários
 
-今天，我们开始第一部分**用户体系**的设计。本文分为如下四大模块：
+Hoje, vamos começar o design da primeira parte: o **Sistema de Usuários**. Este artigo é dividido em quatro módulos:
 
-- 架构设计
-- 数据模型设计
-- 交互设计
-- 接口设计
+- Arquitetura
+- Design do Modelo de Dados
+- Design de Interação
+- Design de Interface
 
-## 架构设计
+## Arquitetura
 
-### 简单来看用户体系
+### Uma Visão Simples do Sistema de Usuários
 
-当你第一次接触和用户相关的互联网产品时，或者曾今在我眼里。**用户体系**无非就是“登录”和“注册”，“修改用户信息”这些，等。简单来做的话，无非我们需要一张表去记录用户的身份信息：注册时(insert操作)，往表里插入一个数据；登录时(select&update操作)，通过用户标识(手机号、邮箱等)判断用户的密码是否正确；修改用户信息(select&update操作)，就是直接update这个uid的用户信息(头像、昵称等)。
+Quando você entra em contato com produtos de internet relacionados a usuários pela primeira vez, ou como eu costumava ver. O **Sistema de Usuários** nada mais é do que "Login", "Cadastro", "Alterar Informações do Usuário", etc. De forma simples, só precisamos de uma tabela para registrar as informações de identidade do usuário: ao registrar (operação insert), insira um dado na tabela; ao fazer login (operação select & update), julgue se a senha do usuário está correta através do identificador do usuário (número de celular, e-mail, etc.); ao modificar as informações do usuário (operação select & update), basta atualizar diretamente as informações do usuário desse uid (avatar, apelido, etc.).
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-smaple-structure.png" data-lightbox="roadtrip">
@@ -19,11 +19,11 @@
     </a>
 </p>
 
-这样设计的确没什么问题，很简单不是么。但是随着业务的发展，一方面我们需要提供统一的用户管理(高内聚)，又要提高系统的可扩展性，所以我想呈现出来的是我理解的**一个基本用户体系应该有的东西**。
+Não há nada de errado com esse design, é muito simples, não é? Mas com o desenvolvimento do negócio, por um lado precisamos fornecer um gerenciamento de usuários unificado (alta coesão), e por outro lado precisamos melhorar a escalabilidade do sistema, então o que quero apresentar é o que entendo que **um sistema de usuários básico deve ter**.
 
-### 一个基本用户体系应该有的东西
+### O Que Um Sistema de Usuários Básico Deve Ter
 
-首先我们对原有的用户表进行再一次的抽象(抽离用户注册、登录依赖的字段、第三方登录) -> **账户表**，为什么这么做？随着业务的发展，以前只维护一个产品，也许某一天又开发新的产品，这样我们就可以统一的维护我们公司所有产品的注册登录逻辑，不同的产品只维护该产品和用户相关的信息即可(具体依赖产品形态)。如下图所示：
+Primeiro, abstraímos a tabela de usuários original novamente (extraindo os campos dependentes de registro e login de usuário, login de terceiros) -> **Tabela de Contas**. Por que fazer isso? Com o desenvolvimento do negócio, costumávamos manter apenas um produto, talvez um dia desenvolvamos novos produtos, para que possamos manter unificadamente a lógica de registro e login de todos os produtos da nossa empresa, e diferentes produtos mantêm apenas as informações relacionadas a esse produto e ao usuário (dependendo da forma do produto). Como mostrado abaixo:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-user-system-2.png" data-lightbox="roadtrip">
@@ -31,31 +31,31 @@
     </a>
 </p>
 
-上图中，还提到了第三方登录/员工表/后台权限管理，这些都是一些用户体系基本必备的结构。
+Na figura acima, também são mencionados login de terceiros / tabela de funcionários / gestão de permissões de backend, que são algumas estruturas básicas necessárias para o sistema de usuários.
 
-第三方登录：第三方也是登录方式的一种，我们也把它抽象到账户的一部分，如上图所示。其次，关于第三方登录这里存在一个交互方式设计存在的问题，后面交互设计时会提到。
+Login de terceiros: O login de terceiros também é um tipo de método de login, e também o abstraímos como parte da conta, como mostrado acima. Em segundo lugar, há um problema no design do método de interação sobre o login de terceiros, que será mencionado no design de interação posterior.
 
-员工：因为上面我们抽离了账户表，所以内部的管理系统后台也可以统一的使用账户表的登录逻辑，这样全公司在账号这个事情上达到了真正的高内聚。
+Funcionários: Como extraímos a tabela de contas acima, o sistema de gerenciamento interno (backend) também pode usar unificadamente a lógica de login da tabela de contas, alcançando assim uma verdadeira alta coesão na questão de contas em toda a empresa.
 
-提到了员工，我们的内部各种系统后台肯定涉及各种的权限管理，所以这里提到了简单的RBAC(基于角色的权限控制)，具体的逻辑数据模型设计会提到。
+Falando em funcionários, nossos vários sistemas de backend internos certamente envolvem vários gerenciamentos de permissões, então aqui mencionamos um RBAC simples (Controle de Acesso Baseado em Função), e o design específico do modelo de dados lógico será mencionado.
 
-### 最终的架构
+### A Arquitetura Final
 
-随着业务产品形态的越来越复杂，在设计架构的时候，我们需要分析其中的**变与不变**：
+À medida que a forma do produto de negócios se torna cada vez mais complexa, ao projetar a arquitetura, precisamos analisar o que **muda e o que não muda**:
 
-- 变：越来越多的产品个性化用户需求
-- 不变：注册登录的逻辑
+- Muda: Cada vez mais necessidades personalizadas de usuários de produtos
+- Não muda: A lógica de registro e login
 
-最终的结果，我们把原有的用户拆成了**账户**和**用户**，同时我们也要在这里明确这两个概念的区别：
+O resultado final é que dividimos o usuário original em **Conta** e **Usuário**, e também precisamos esclarecer a diferença entre esses dois conceitos aqui:
 
-- 账户：整个体系唯一生产uid的地方，内聚注册登录逻辑，不涉及产品业务需求
-- 用户：不同产品个性化的用户需求信息
+- Conta: O único lugar em todo o sistema que gera uid, coeso com a lógica de registro e login, não envolvendo requisitos de negócios do produto
+- Usuário: Informações de requisitos de usuário personalizadas de diferentes produtos
 
-最终的架构图如下：
+O diagrama de arquitetura final é o seguinte:
 
-- 第一部分：账户(**服务层**)
-- 第二部分：用户(**应用层**，无限水平扩展)
-- 第三部分：员工(**应用层**，员工权限体系)
+- Primeira parte: Conta (**Camada de Serviço**)
+- Segunda parte: Usuário (**Camada de Aplicação**, expansão horizontal infinita)
+- Terceira parte: Funcionário (**Camada de Aplicação**, sistema de permissões de funcionários)
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-structure.jpg" data-lightbox="roadtrip">
@@ -64,38 +64,38 @@
 </p>
 
 
-## 数据模型设计
+## Design do Modelo de Dados
 
-对应上面的架构，我们很容易设计出我们的数据模型(这里假设我们目前只有一个对C端的应用)：
-
-```
-账户 -> 1.账户表
-用户 -> 2.用户表
-员工 -> 3.员工表
-```
-
-除了上面三张表外，还需要我们的R(role)B(base)A(access)C(control)权限管理,RBAC基于角色的权限管理大家应该很熟悉，这里我就不详细说了，简单的RBAC首先需要：
+Correspondendo à arquitetura acima, podemos facilmente projetar nosso modelo de dados (assumindo que atualmente temos apenas um aplicativo para o consumidor final - C-end):
 
 ```
-4.系统菜单表(菜单即权限)，系统的uri路径
-5.权限表(菜单即权限)，具体的权限就是访问系统的菜单
-6.角色表，一个角色具有哪些权限
-7.员工和角色的关联表，一个员工属于哪个角色
+Conta -> 1. Tabela de Contas
+Usuário -> 2. Tabela de Usuários
+Funcionário -> 3. Tabela de Funcionários
 ```
 
-好了一个简单的RBAC涉及的表基本罗列出来了，但是在我的工作经历中大家实现的权限管理往往只针对某个系统，这样对于众多的系统后台来说就是乱、重复造轮子、权限管理效率低。所以我在上面的架构设计中把权限作为了一个服务为全系统提供基础服务能力。而达到这个目的的结果我只需要再增加一张表：
+Além das três tabelas acima, também precisamos do nosso gerenciamento de permissões R(role)B(base)A(access)C(control). Todos devem estar familiarizados com o gerenciamento de permissões baseado em funções RBAC, então não entrarei em detalhes aqui. Um RBAC simples precisa primeiro de:
 
 ```
-8.后台管理系统表, 登记所有的后台管理系统(这样通过系统id和系统资源uri的id就可以全局构成唯一性，单纯的uri存在重复的可能性，用uri不用url的原因是域名存在变动的可能性)
+4. Tabela de menus do sistema (menu é permissão), caminho uri do sistema
+5. Tabela de permissões (menu é permissão), a permissão específica é acessar o menu do sistema
+6. Tabela de funções, quais permissões uma função possui
+7. Tabela de associação entre funcionários e funções, a qual função um funcionário pertence
 ```
 
-最后我们的用户体系应该基本就上面8张表。咦，貌似漏掉了第三方登录，我们加上吧，很简单如下：
+Ok, as tabelas envolvidas em um RBAC simples estão basicamente listadas, mas na minha experiência de trabalho, o gerenciamento de permissões implementado por todos geralmente visa apenas um determinado sistema, o que é confuso, repetitivo ("reinventar a roda") e ineficiente para muitos sistemas de backend. Portanto, no design da arquitetura acima, fiz da permissão um serviço para fornecer recursos básicos de serviço para todo o sistema. E para atingir esse objetivo, só preciso adicionar mais uma tabela:
 
 ```
-9. 第三方用户登录表，记录不同第三方的用户标示
+8. Tabela de sistemas de gerenciamento de backend, registra todos os sistemas de gerenciamento de backend (assim, através do id do sistema e do id do uri do recurso do sistema, a exclusividade global pode ser constituída. O uri simples tem a possibilidade de duplicação. A razão para usar uri em vez de url é a possibilidade de mudanças de domínio)
 ```
 
-最最后就是上面的9张表了，具体的表结构和sql如下：
+Finalmente, nosso sistema de usuários deve ter basicamente as 8 tabelas acima. Opa, parece que esqueci o login de terceiros, vamos adicionar, é muito simples:
+
+```
+9. Tabela de login de usuário de terceiros, registra diferentes identificadores de usuários de terceiros
+```
+
+E finalmente, são as 9 tabelas acima. A estrutura específica da tabela e o sql são os seguintes:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-model.png" data-lightbox="roadtrip">
@@ -104,186 +104,186 @@
 </p>
 
 
-### 表sql
+### SQL das Tabelas
 
-**账户模型**
+**Modelo de Conta**
 
 ```sql
 
--- 账户模型
+-- Modelo de Conta
 CREATE TABLE `account_user` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '账号id',
-  `email` varchar(30) NOT NULL DEFAULT '' COMMENT '邮箱',
-  `phone` varchar(15) NOT NULL DEFAULT '' COMMENT '手机号',
-  `username` varchar(30) NOT NULL DEFAULT '' COMMENT '用户名',
-  `password` varchar(32) NOT NULL DEFAULT '' COMMENT '密码',
-  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `create_ip_at` varchar(12) NOT NULL DEFAULT '' COMMENT '创建ip',
-  `last_login_at` int(11) NOT NULL DEFAULT '0' COMMENT '最后一次登录时间',
-  `last_login_ip_at` varchar(12) NOT NULL DEFAULT '' COMMENT '最后一次登录ip',
-  `login_times` int(11) NOT NULL DEFAULT '0' COMMENT '登录次数',
-  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID da conta',
+  `email` varchar(30) NOT NULL DEFAULT '' COMMENT 'E-mail',
+  `phone` varchar(15) NOT NULL DEFAULT '' COMMENT 'Número de celular',
+  `username` varchar(30) NOT NULL DEFAULT '' COMMENT 'Nome de usuário',
+  `password` varchar(32) NOT NULL DEFAULT '' COMMENT 'Senha',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+  `create_ip_at` varchar(12) NOT NULL DEFAULT '' COMMENT 'IP de criação',
+  `last_login_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data do último login',
+  `last_login_ip_at` varchar(12) NOT NULL DEFAULT '' COMMENT 'IP do último login',
+  `login_times` int(11) NOT NULL DEFAULT '0' COMMENT 'Número de logins',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
   PRIMARY KEY (`id`),
   KEY `idx_email` (`email`),
   KEY `idx_phone` (`phone`),
   KEY `idx_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='账户';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Conta';
 
--- 第三方账户
+-- Conta de Terceiros
 CREATE TABLE `account_platform` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-  `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '账号id',
-  `platform_id` varchar(60) NOT NULL DEFAULT '' COMMENT '平台id',
-  `platform_token` varchar(60) NOT NULL DEFAULT '' COMMENT '平台access_token',
-  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT '平台类型 0:未知,1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter',
-  `nickname` varchar(60) NOT NULL DEFAULT '' COMMENT '昵称',
-  `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT '头像',
-  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da conta',
+  `platform_id` varchar(60) NOT NULL DEFAULT '' COMMENT 'ID da plataforma',
+  `platform_token` varchar(60) NOT NULL DEFAULT '' COMMENT 'Access token da plataforma',
+  `type` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Tipo de plataforma 0:desconhecido,1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter',
+  `nickname` varchar(60) NOT NULL DEFAULT '' COMMENT 'Apelido',
+  `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT 'Avatar',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
   PRIMARY KEY (`id`),
   KEY `idx_uid` (`uid`),
   KEY `idx_platform_id` (`platform_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='第三方用户信息';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Informações de usuário de terceiros';
 ```
 
-**用户模型**
+**Modelo de Usuário**
 
 ```sql
 
--- 用户模型
+-- Modelo de Usuário
 CREATE TABLE `skr_member` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '用户id',
-  `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '账号id',
-  `nickname` varchar(30) NOT NULL DEFAULT '' COMMENT '昵称',
-  `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT '头像(相对路径)',
-  `gender` enum('male','female','unknow') NOT NULL DEFAULT 'unknow' COMMENT '性别',
-  `role` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '角色 0:普通用户 1:vip',
-  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID do usuário',
+  `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da conta',
+  `nickname` varchar(30) NOT NULL DEFAULT '' COMMENT 'Apelido',
+  `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT 'Avatar (caminho relativo)',
+  `gender` enum('male','female','unknow') NOT NULL DEFAULT 'unknow' COMMENT 'Gênero',
+  `role` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT 'Papel 0:usuário comum 1:vip',
+  `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+  `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
   PRIMARY KEY (`id`),
   KEY `idx_uid` (`uid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='账户信息';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Informações da conta';
 ```
 
-**员工模型**
+**Modelo de Funcionário**
 
 ```sql
 
--- 员工表
+-- Tabela de Funcionários
 CREATE TABLE `staff_info` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '员工id',
-    `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '账号id',
-    `email` varchar(30) NOT NULL DEFAULT '' COMMENT '员工邮箱',
-    `phone` varchar(15) NOT NULL DEFAULT '' COMMENT '员工手机号',
-    `name` varchar(30) NOT NULL DEFAULT '' COMMENT '员工姓名',
-    `nickname` varchar(30) NOT NULL DEFAULT '' COMMENT '员工昵称',
-    `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT '员工头像(相对路径)',
-    `gender` enum('male','female','unknow') NOT NULL DEFAULT 'unknow' COMMENT '员工性别',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID do funcionário',
+    `uid` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da conta',
+    `email` varchar(30) NOT NULL DEFAULT '' COMMENT 'E-mail do funcionário',
+    `phone` varchar(15) NOT NULL DEFAULT '' COMMENT 'Celular do funcionário',
+    `name` varchar(30) NOT NULL DEFAULT '' COMMENT 'Nome do funcionário',
+    `nickname` varchar(30) NOT NULL DEFAULT '' COMMENT 'Apelido do funcionário',
+    `avatar` varchar(255) NOT NULL DEFAULT '' COMMENT 'Avatar do funcionário (caminho relativo)',
+    `gender` enum('male','female','unknow') NOT NULL DEFAULT 'unknow' COMMENT 'Gênero do funcionário',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
     PRIMARY KEY (`id`),
     KEY `idx_uid` (`uid`),
     KEY `idx_email` (`email`),
     KEY `idx_phone` (`phone`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工信息(这里列了大概的信息，多的可以垂直拆表)';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Informações do funcionário (informações aproximadas listadas aqui, mais podem ser divididas verticalmente)';
 
 ```
 
-**系统权限管理模型**
+**Modelo de Gerenciamento de Permissões do Sistema**
 
 ```sql
 
--- 权限管理: 系统map
+-- Gerenciamento de Permissões: Mapa do Sistema
 CREATE TABLE `auth_ms` (
-    `id` smallint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-    `ms_name` varchar(255) NOT NULL DEFAULT '0' COMMENT '系统名称',
-    `ms_desc` varchar(255) NOT NULL DEFAULT '0' COMMENT '系描述',
-    `ms_domain` varchar(255) NOT NULL DEFAULT '0' COMMENT '系统域名',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+    `id` smallint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+    `ms_name` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Nome do sistema',
+    `ms_desc` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Descrição do sistema',
+    `ms_domain` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Domínio do sistema',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário criador',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
+    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário modificador',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
     PRIMARY KEY (`id`),
     KEY `idx_domain` (`ms_domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统map(登记目前存在的后台系统信息)';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Mapa do sistema (registra informações do sistema de backend existentes atualmente)';
 
--- 权限管理: 系统menu
+-- Gerenciamento de Permissões: Menu do Sistema
 CREATE TABLE `auth_ms_menu` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-    `ms_id` smallint(11) unsigned NOT NULL DEFAULT '0' COMMENT '系统id',
-    `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '父菜单id',
-    `menu_name` varchar(255) NOT NULL DEFAULT '0' COMMENT '菜单名称',
-    `menu_desc` varchar(255) NOT NULL DEFAULT '0' COMMENT '菜描述',
-    `menu_uri` varchar(255) NOT NULL DEFAULT '0' COMMENT '菜单uri',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `is_show` enum('yes','no') NOT NULL DEFAULT 'no' COMMENT '是否展示菜单',
-    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+    `ms_id` smallint(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do sistema',
+    `parent_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do menu pai',
+    `menu_name` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Nome do menu',
+    `menu_desc` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Descrição do menu',
+    `menu_uri` varchar(255) NOT NULL DEFAULT '0' COMMENT 'URI do menu',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `is_show` enum('yes','no') NOT NULL DEFAULT 'no' COMMENT 'Se exibe o menu',
+    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário criador',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
+    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário modificador',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
     PRIMARY KEY (`id`),
     KEY `idx_ms_id` (`ms_id`),
     KEY `idx_parent_id` (`parent_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统menu';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Menu do sistema';
 
--- 权限管理: 系统权限
+-- Gerenciamento de Permissões: Permissões do Sistema
 CREATE TABLE `auth_item` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-    `ms_id` tinyint(11) unsigned NOT NULL DEFAULT '0' COMMENT '系统id',
-    `menu_id` varchar(255) NOT NULL DEFAULT '0' COMMENT '页面/接口uri',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+    `ms_id` tinyint(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do sistema',
+    `menu_id` varchar(255) NOT NULL DEFAULT '0' COMMENT 'URI da página/interface',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário criador',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
+    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário modificador',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
     PRIMARY KEY (`id`),
     KEY `idx_ms_menu` (`ms_id`, `menu_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统权限';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Permissões do sistema';
 
--- 权限管理: 系统权限(权限的各个集合)
+-- Gerenciamento de Permissões: Permissões do Sistema (Conjunto de Permissões)
 CREATE TABLE `auth_role` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-    `name` varchar(255) NOT NULL DEFAULT '0' COMMENT '角色名称',
-    `desc` varchar(255) NOT NULL DEFAULT '0' COMMENT '角描述',
-    `auth_item_set` text COMMENT '权限集合 多个值,号隔开',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+    `name` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Nome da função',
+    `desc` varchar(255) NOT NULL DEFAULT '0' COMMENT 'Descrição da função',
+    `auth_item_set` text COMMENT 'Conjunto de permissões, múltiplos valores separados por vírgula',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário criador',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
+    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário modificador',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工角色';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Função do funcionário';
 
--- 权限管理: 角色与员工关系
+-- Gerenciamento de Permissões: Relação entre Função e Funcionário
 CREATE TABLE `auth_role_staff` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
-    `staff_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '员工id',
-    `role_set` text COMMENT '角色集合 多个值,号隔开',
-    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1:enable, 0:disable, -1:deleted',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID incremental',
+    `staff_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do funcionário',
+    `role_set` text COMMENT 'Conjunto de funções, múltiplos valores separados por vírgula',
+    `create_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de criação',
+    `create_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário criador',
+    `update_at` int(11) NOT NULL DEFAULT '0' COMMENT 'Data de atualização',
+    `update_by` int(11) NOT NULL DEFAULT '0' COMMENT 'ID do funcionário modificador',
+    `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Status 1:enable, 0:disable, -1:deleted',
     PRIMARY KEY (`id`),
     KEY `idx_staff_id` (`staff_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='权限角色与员工关系';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Relação entre função de permissão e funcionário';
 
 ```
 
 
-## 交互设计
+## Design de Interação
 
-> 友情提示：一大波图片即将到来，此处图片较多，不清楚的可点击大图查看
+> Dica amigável: Uma grande onda de imagens está chegando, se as imagens não estiverem claras, clique na imagem para ver ampliado
 
-### 注册
+### Cadastro
 
-注册成功之后存在至少两种交互方式：
+Existem pelo menos dois métodos de interação após o registro bem-sucedido:
 
-1. 注册成功 -> 跳转到登录页面
-2. 注册成功 -> 自动登录 -> 跳转到应用首页(或者其他页面)
+1. Cadastro com sucesso -> Ir para a página de login
+2. Cadastro com sucesso -> Login automático -> Ir para a página inicial do aplicativo (ou outra página)
 
-具体交互流程如下：
+O fluxo de interação específico é o seguinte:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-register-bmpr.png" data-lightbox="roadtrip">
@@ -299,7 +299,7 @@ CREATE TABLE `auth_role_staff` (
 
 --- 
 
-### 登录
+### Login
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-login-page.png" data-lightbox="roadtrip">
@@ -313,9 +313,9 @@ CREATE TABLE `auth_role_staff` (
     </a>
 </p>
 
-##### 快捷登录
+##### Login Rápido
 
-快捷登录的流程基本和上面一致只是验证密码换成了验证验证码。
+O processo de login rápido é basicamente o mesmo que o acima, apenas a verificação de senha é alterada para verificação de código.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-simple-login-page.png" data-lightbox="roadtrip">
@@ -325,18 +325,18 @@ CREATE TABLE `auth_role_staff` (
 
 ---
 
-### 第三方登录
+### Login de Terceiros
 
-第三方登录的交互其实存在这样的问题：
+A interação de login de terceiros na verdade tem este problema:
 
-1. 第三方账户登录成功后还需要绑定手机号/Email吗？
+1. Após o login bem-sucedido da conta de terceiros, ainda é necessário vincular o número de celular/e-mail?
 
-因为我发现有些PM为了提高用户使用的简单快捷性，往往第三方登录成功后会直接产生uid，而不进行账号的绑定。这样之后在再进行账号绑定就涉及账号合并的问题，很麻烦(如果有钱包等)。如果我们一开始就进行绑定操作，这样未来账号的关系就清晰明了便于维护，第三方登录其实就相当于普通账号的别名。
-最后这个事情做不做的结果就是，账户表account_user和第三方用户信息表account_platform是的**一对多**还是**一对一**的关系。
+Porque descobri que alguns PMs (Product Managers), para melhorar a simplicidade e rapidez de uso dos usuários, muitas vezes geram uid diretamente após o login de terceiros bem-sucedido, sem vincular a conta. Dessa forma, a vinculação de conta posterior envolve o problema de fusão de contas, o que é muito problemático (se houver carteiras, etc.). Se fizermos a operação de vinculação desde o início, a relação futura da conta será clara e fácil de manter. O login de terceiros é na verdade equivalente a um alias de uma conta comum.
+O resultado final de fazer isso ou não é se a relação entre a tabela de contas `account_user` e a tabela de informações de usuários de terceiros `account_platform` é **um para muitos** ou **um para um**.
 
-2. 如果绑定，已经注册的手机号/Email是否可以绑定？
+2. Se vincular, o celular/e-mail já registrado pode ser vinculado?
 
-这个还好说，一般来说绑定的选择基本是正确的。最后具体的流程图如下：
+Isso é fácil de dizer, geralmente a escolha de vincular é basicamente correta. O fluxograma específico final é o seguinte:
 
 
 <p align="center">
@@ -346,7 +346,7 @@ CREATE TABLE `auth_role_staff` (
 </p>
 
 
-交互界面图如下：
+A interface de interação é a seguinte:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-account-platform-login-page.png" data-lightbox="roadtrip">
@@ -356,26 +356,26 @@ CREATE TABLE `auth_role_staff` (
 
 ---
 
-### 后台权限管理
+### Gestão de Permissões de Backend
 
-首先，我们的后台管理系统需要个响亮的称号，想了一会以前公司用过apollo,于是我准备用mars但突然冒出来个earth，地球万物之根，刚好我们这又是个全业务的基础服务管理系统，哈哈就这样吧～ **Earth System**
+Primeiro, nosso sistema de gerenciamento de backend precisa de um nome sonoro. Pensei um pouco, a empresa anterior usava apollo, então eu estava pronto para usar mars, mas de repente apareceu earth, a raiz de todas as coisas na terra. Acontece que este é um sistema de gerenciamento de serviço básico para todos os negócios, haha, então que seja assim ~ **Earth System**
 
-**Earth System**的权限管理功能主要分为以下四部分：
+A função de gerenciamento de permissões do **Earth System** é dividida principalmente nas quatro partes a seguir:
 
-- 系统管理(The manage system page)
-    + 编辑页面
-    + 列表页面
-- 菜单管理(The menu page)
-    + 编辑页面
-    + 列表页面
-- 角色管理(The role page)
-    + 编辑页面
-    + 列表页面
-- 员工与角色关联管理(The role staff map page)
-    + 编辑页面
-    + 列表页面
+- Gerenciamento de Sistema (A página de gerenciamento do sistema)
+    + Página de edição
+    + Página de lista
+- Gerenciamento de Menu (A página de menu)
+    + Página de edição
+    + Página de lista
+- Gerenciamento de Função (A página de função)
+    + Página de edição
+    + Página de lista
+- Gerenciamento de Associação entre Funcionário e Função (A página de mapa de função e funcionário)
+    + Página de edição
+    + Página de lista
 
-具体交互如下：
+A interação específica é a seguinte:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/skr-earth-2.jpg" data-lightbox="roadtrip">
@@ -385,22 +385,22 @@ CREATE TABLE `auth_role_staff` (
 
 ---
 
-## 接口设计
+## Design de Interface
 
-### 应用层接口(对外)
+### Interfaces da Camada de Aplicação (Externa)
 
-1.注册接口
+1. Interface de Cadastro
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-username|string|非必传|用户账号
-email|string|email/phone两者择一|用户邮箱
-phone|string|email/phone两者择一|用户手机号
-code|int|必传|验证码
+username|string|Não obrigatório|Conta de usuário
+email|string|Escolha um entre email/phone|E-mail do usuário
+phone|string|Escolha um entre email/phone|Celular do usuário
+code|int|Obrigatório|Código de verificação
 
-交互方式一(跳转到登录页面)响应内容：
+Resposta do método de interação um (ir para a página de login):
 ```json
 {
     "code": "200",
@@ -409,242 +409,242 @@ code|int|必传|验证码
 }
 ```
 
-交互方式二(跳转到首页页面)响应内容：
+Resposta do método de interação dois (ir para a página inicial):
 ```json
 {
     "code": "200",
     "msg": "OK",
     "result": {
-        "s_token": "string, 用户会话标示",
-        "s_token_expire": "string, 用户会话标示过期时间，0不过期",
-        "username": "string, 用户名",
-        "nickname": "string, 用户昵称",
-        "avatar": "string, 用户头像",
-        "gender": "string, 用户性别，male:男，female:女，other:未知",
+        "s_token": "string, identificador de sessão do usuário",
+        "s_token_expire": "string, tempo de expiração do identificador de sessão do usuário, 0 não expira",
+        "username": "string, nome de usuário",
+        "nickname": "string, apelido do usuário",
+        "avatar": "string, avatar do usuário",
+        "gender": "string, gênero do usuário, male:masculino, female:feminino, other:desconhecido",
     }
 }
 ```
 
-2.登录接口
+2. Interface de Login
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-username|string|username/email/phone三者择一|用户账号
-email|string|username/email/phone三者择一|用户邮箱
-phone|string|username/email/phone三者择一|用户手机号
-password|string|必传|密码
+username|string|Escolha um entre username/email/phone|Conta de usuário
+email|string|Escolha um entre username/email/phone|E-mail do usuário
+phone|string|Escolha um entre username/email/phone|Celular do usuário
+password|string|Obrigatório|Senha
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "result": {
-        "s_token": "string, 用户会话标示",
-        "s_token_expire": "string, 用户会话标示过期时间，0不过期",
-        "nickname": "string, 用户昵称",
-        "username": "string, 用户名",
-        "avatar": "string, 用户头像",
-        "gender": "string, 用户性别，male:男，female:女，other:未知",
+        "s_token": "string, identificador de sessão do usuário",
+        "s_token_expire": "string, tempo de expiração do identificador de sessão do usuário, 0 não expira",
+        "nickname": "string, apelido do usuário",
+        "username": "string, nome de usuário",
+        "avatar": "string, avatar do usuário",
+        "gender": "string, gênero do usuário, male:masculino, female:feminino, other:desconhecido",
     }
 }
 ```
 
-3.快捷登录接口
+3. Interface de Login Rápido
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-email|string|email/phone两者择一|用户邮箱
-phone|string|email/phone两者择一|用户手机号
-code|int|必传|验证码
+email|string|Escolha um entre email/phone|E-mail do usuário
+phone|string|Escolha um entre email/phone|Celular do usuário
+code|int|Obrigatório|Código de verificação
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "result": {
-        "s_token": "string, 用户会话标示",
-        "s_token_expire": "string, 用户会话标示过期时间，0不过期",
-        "nickname": "string, 用户昵称",
-        "username": "string, 用户名",
-        "avatar": "string, 用户头像",
-        "gender": "string, 用户性别，male:男，female:女，other:未知",
+        "s_token": "string, identificador de sessão do usuário",
+        "s_token_expire": "string, tempo de expiração do identificador de sessão do usuário, 0 não expira",
+        "nickname": "string, apelido do usuário",
+        "username": "string, nome de usuário",
+        "avatar": "string, avatar do usuário",
+        "gender": "string, gênero do usuário, male:masculino, female:feminino, other:desconhecido",
     }
 }
 ```
 
-4.第三方登录接口
+4. Interface de Login de Terceiros
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-type|string|必传|平台类型 1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter
-platform_id|string|必传|第三方平台用户ID
-platform_token|string|必传|第三方平台令牌
+type|string|Obrigatório|Tipo de plataforma 1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter
+platform_id|string|Obrigatório|ID do usuário da plataforma de terceiros
+platform_token|string|Obrigatório|Token da plataforma de terceiros
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "result": {
-        "s_token": "string, 用户会话标示",
-        "s_token_expire": "string, 用户会话标示过期时间，0不过期",
-        "username": "string, 用户名",
-        "nickname": "string, 用户昵称",
-        "avatar": "string, 用户头像",
-        "gender": "string, 用户性别，male:男，female:女，other:未知",
+        "s_token": "string, identificador de sessão do usuário",
+        "s_token_expire": "string, tempo de expiração do identificador de sessão do usuário, 0 não expira",
+        "username": "string, nome de usuário",
+        "nickname": "string, apelido do usuário",
+        "avatar": "string, avatar do usuário",
+        "gender": "string, gênero do usuário, male:masculino, female:feminino, other:desconhecido",
     }
 }
 ```
 
-5.用户信息修改接口
+5. Interface de Modificação de Informações do Usuário
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-username|string|非必传|用户账号
-nickname|string|非必传|昵称
-avatar|string|非必传|头像url
-gender|string|非必传|用户性别，male:男，female:女，other:未知
+username|string|Não obrigatório|Conta de usuário
+nickname|string|Não obrigatório|Apelido
+avatar|string|Não obrigatório|URL do avatar
+gender|string|Não obrigatório|Gênero do usuário, male:masculino, female:feminino, other:desconhecido
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "result": {
-        "username": "string, 用户名",
-        "nickname": "string, 用户昵称",
-        "avatar": "string, 用户头像",
-        "gender": "string, 用户性别，male:男，female:女，other:未知",
+        "username": "string, nome de usuário",
+        "nickname": "string, apelido do usuário",
+        "avatar": "string, avatar do usuário",
+        "gender": "string, gênero do usuário, male:masculino, female:feminino, other:desconhecido",
     }
 }
 ```
 
-6.用户登录状态校验
+6. Verificação de Status de Login do Usuário
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-s_token|string|必传|用户会话标示
+s_token|string|Obrigatório|Identificador de sessão do usuário
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "result": {
-        "s_token_expire": "string, 用户会话标示过期时间，0不过期， -1登录失效",
+        "s_token_expire": "string, tempo de expiração do identificador de sessão do usuário, 0 não expira, -1 login inválido",
     }
 }
 ```
 
-### 服务接口(基础服务，对内)
+### Interfaces de Serviço (Serviço Básico, Interno)
 
-**账户服务：**
+**Serviço de Conta:**
 
-1. 注册
+1. Cadastro
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-username|string|非必传|用户账号
-email|string|email/phone两者择一|用户邮箱
-phone|string|email/phone两者择一|用户手机号
+username|string|Não obrigatório|Conta de usuário
+email|string|Escolha um entre email/phone|E-mail do usuário
+phone|string|Escolha um entre email/phone|Celular do usuário
 
-交互方式一(跳转到登录页面)响应内容：
-```json
-{
-    "code": "200",
-    "msg": "OK",
-    "result": {
-        "uid": "string, 账户ID"
-    }
-}
-```
-
-2. 登录
-
-请求参数：
-
-字段|类型|是否必传|描述
-------------|------------|------------|------------
-username|string|非必传|用户账号
-email|string|email/phone两者择一|用户邮箱
-phone|string|email/phone两者择一|用户手机号
-password|string|必传|密码
-
-响应内容：
+Resposta do método de interação um (ir para a página de login):
 ```json
 {
     "code": "200",
     "msg": "OK",
     "result": {
-        "uid": "string, 账户ID"
+        "uid": "string, ID da conta"
     }
 }
 ```
 
-2. 第三方登录
+2. Login
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-type|string|必传|平台类型 1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter
-platform_id|string|必传|第三方平台用户ID
-platform_token|string|必传|第三方平台令牌
+username|string|Não obrigatório|Conta de usuário
+email|string|Escolha um entre email/phone|E-mail do usuário
+phone|string|Escolha um entre email/phone|Celular do usuário
+password|string|Obrigatório|Senha
 
-响应内容：
-```json
-{
-    "code": "200",
-    "result": {
-        "uid": "string, 账户ID",
-        "nickname": "string, 用户昵称",
-        "avatar": "string, 用户头像",
-    }
-}
-```
-
-**权限服务**
-
-1. 获取系统菜单
-
-请求参数：
-
-字段|类型|是否必传|描述
-------------|------------|------------|------------
-ms_id|string|必传|系统ID
-
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "msg": "OK",
     "result": {
-        "ms_name": "string, 系统名称",
-        "ms_desc": "string, 系描述",
-        "ms_domain": "string, 系统域名",
+        "uid": "string, ID da conta"
+    }
+}
+```
+
+2. Login de Terceiros
+
+Parâmetros de requisição:
+
+Campo|Tipo|Obrigatório|Descrição
+------------|------------|------------|------------
+type|string|Obrigatório|Tipo de plataforma 1:facebook,2:google,3:wechat,4:qq,5:weibo,6:twitter
+platform_id|string|Obrigatório|ID do usuário da plataforma de terceiros
+platform_token|string|Obrigatório|Token da plataforma de terceiros
+
+Conteúdo da resposta:
+```json
+{
+    "code": "200",
+    "result": {
+        "uid": "string, ID da conta",
+        "nickname": "string, Apelido do usuário",
+        "avatar": "string, Avatar do usuário",
+    }
+}
+```
+
+**Serviço de Permissões**
+
+1. Obter Menu do Sistema
+
+Parâmetros de requisição:
+
+Campo|Tipo|Obrigatório|Descrição
+------------|------------|------------|------------
+ms_id|string|Obrigatório|ID do sistema
+
+Conteúdo da resposta:
+```json
+{
+    "code": "200",
+    "msg": "OK",
+    "result": {
+        "ms_name": "string, Nome do sistema",
+        "ms_desc": "string, Descrição do sistema",
+        "ms_domain": "string, Domínio do sistema",
         "list": [
             {
-                "parent_id": "string, 父菜单ID",
-                "menu_id": "string, 菜单ID",
-                "menu_name": "string, 菜单ID",
-                "menu_desc": "string, 菜描述",
-                "menu_uri": "string, 菜单uri",
+                "parent_id": "string, ID do menu pai",
+                "menu_id": "string, ID do menu",
+                "menu_name": "string, ID do menu",
+                "menu_desc": "string, Descrição do menu",
+                "menu_uri": "string, URI do menu",
                 "child" : [
                     {
-                        "parent_id": "string, 父菜单ID",
-                        "menu_id": "string, 菜单ID",
-                        "menu_name": "string, 菜单ID",
-                        "menu_desc": "string, 菜描述",
-                        "menu_uri": "string, 菜单uri",
+                        "parent_id": "string, ID do menu pai",
+                        "menu_id": "string, ID do menu",
+                        "menu_name": "string, ID do menu",
+                        "menu_desc": "string, Descrição do menu",
+                        "menu_uri": "string, URI do menu",
                         "child" : []
                     }
                 ]
@@ -654,15 +654,15 @@ ms_id|string|必传|系统ID
 }
 ```
 
-2. 权限校验
+2. Verificação de Permissão
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-menu_id|string|必传|菜单ID
+menu_id|string|Obrigatório|ID do menu
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
