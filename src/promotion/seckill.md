@@ -1,19 +1,19 @@
-# 秒杀服务
+# Serviço de Seckill (Oferta Relâmpago)
 
-## 前言
+## Prefácio
 
-做业务的都知道:
+Quem trabalha com negócios sabe:
 
-> 做系统概念很重要
+> O conceito do sistema é muito importante
 
-因为在同事和同事间沟通中，这些概念可以精准的告诉别人你想表达的。尤其是电商系统，众所周知电商里有很多的概念，比如Sku、Spu等。
+Porque na comunicação entre colegas, esses conceitos podem dizer com precisão aos outros o que você quer expressar. Especialmente no sistema de e-commerce, como todos sabem, existem muitos conceitos no e-commerce, como Sku, Spu, etc.
 
-所以首先我们需要了解**秒杀是什么？**
+Então, primeiro precisamos entender **O que é Seckill (Oferta Relâmpago)?**
 
 
-## 秒杀是什么？
+## O que é Seckill?
 
-我们先来看如下京东、有品、拼多多的秒杀页面截图。
+Vamos dar uma olhada nas capturas de tela das páginas de seckill do JD, Youpin e Pinduoduo abaixo.
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200712224532.jpeg">
@@ -27,54 +27,54 @@
     </a>
 </p>
 
-通过页面上的信息我们可以获取到如下的有用信息：
+Através das informações na página, podemos obter as seguintes informações úteis:
 
-|概念|描述|
+|Conceito|Descrição|
 |-------|-------|
-|概念1|活动|
-|概念2|场次的概念，场次是活动的子集|
+|Conceito 1|Atividade|
+|Conceito 2|Conceito de Sessão, a sessão é um subconjunto da atividade|
 
-|页面上的数据信息|描述|
+|Informações de dados na página|Descrição|
 |-------|-------|
-|活动信息|活动、场次信息|
-|秒杀商品信息|商品图片、商品名称、商品加车价格、商品售价、其他描述信息|
-|秒杀进度|库存进度|
+|Informações da atividade|Informações da atividade e da sessão|
+|Informações do produto de seckill|Imagem do produto, nome do produto, preço de adição ao carrinho, preço de venda, outras informações descritivas|
+|Progresso do Seckill|Progresso do estoque|
 
-秒杀的定义：
+Definição de Seckill:
 
-> 秒杀是电商的一种营销手段，常见的有一元秒杀等
+> Seckill é um meio de marketing de e-commerce, sendo comum o seckill de um yuan, etc.
 
-## 秒杀活动有哪些营销维度？
+## Quais são as dimensões de marketing das atividades de Seckill?
 
-|营销维度|
+|Dimensão de Marketing|
 |-------|
-|价格维度|
-|数量维度|
-|商品维度|
-|时间维度|
+|Dimensão de Preço|
+|Dimensão de Quantidade|
+|Dimensão do Produto|
+|Dimensão de Tempo|
 
-|价格维度|
+|Dimensão de Preço|
 |-------|
-|白菜价|
-|非白菜价|
+|Preço de banana (muito barato)|
+|Preço não banana|
 
-|数量维度|
+|Dimensão de Quantidade|
 |-------|
-|极少(比如几个)|
-|非极少|
+|Extremamente pequena (por exemplo, alguns)|
+|Não extremamente pequena|
 
-|商品维度|
+|Dimensão do Produto|
 |-------|
-|爆品|
-|非爆品|
+|Produto popular (爆品)|
+|Não popular|
 
-|时间维度|
+|Dimensão de Tempo|
 |-------|
-|限时|
+|Tempo limitado|
 
-把上面的维度按照运营需求组合就得到了不同的秒杀活动类型，如下：
+Combinando as dimensões acima de acordo com as necessidades operacionais, obtemos diferentes tipos de atividades de seckill, como segue:
 
-### 首先，一元秒杀之类：白菜价+极少+(爆品或者非爆品)+限时
+### Primeiro, Seckill de um yuan e afins: Preço de banana + Extremamente pequeno + (Produto popular ou não) + Tempo limitado
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200718215320.png">
@@ -82,7 +82,7 @@
     </a>
 </p>
 
-### 其次，限时购(又称常规秒杀)：非白菜价+(极少或非极少)+(爆品或者非爆品)+限时
+### Segundo, Compra por Tempo Limitado (também conhecida como Seckill Convencional): Preço não banana + (Extremamente pequeno ou não) + (Produto popular ou não) + Tempo limitado
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200718215411.png">
@@ -90,7 +90,7 @@
     </a>
 </p>
 
-### 接着，爆品抢购：非白菜价+(极少或非极少)+爆品+限时
+### Em seguida, Seckill de Produto Popular: Preço não banana + (Extremamente pequeno ou não) + Produto popular + Tempo limitado
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200718215425.png">
@@ -98,182 +98,182 @@
     </a>
 </p>
 
-|秒杀活动类型|营销维度|
+|Tipo de Atividade de Seckill|Dimensão de Marketing|
 |-------|-------|
-|一元秒杀之类|白菜价+极少+(爆品或者非爆品)+限时|
-|限时购(又称常规秒杀) |非白菜价+(极少或非极少)+(爆品或者非爆品)+限时 -> |
-|爆品抢购|非白菜价+(极少或非极少)+爆品+限时|
+|Seckill de um yuan e afins|Preço de banana + Extremamente pequeno + (Produto popular ou não) + Tempo limitado|
+|Compra por Tempo Limitado (Seckill Convencional) |Preço não banana + (Extremamente pequeno ou não) + (Produto popular ou não) + Tempo limitado -> |
+|Seckill de Produto Popular|Preço não banana + (Extremamente pequeno ou não) + Produto popular + Tempo limitado|
 
-## 一个简单的秒杀系统
+## Um Sistema de Seckill Simples
 
-**实现原理：** 通过redis原子操作减库存
+**Princípio de implementação:** Redução de estoque através de operação atômica do Redis
 
-**图一**
+**Figura 1**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501175532.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501175532.png" width="100%">
     </a>
 </p>
 
-优点|缺点
+Vantagens|Desvantagens
 ------------|------------
-简单好用|考验redis服务能力
+Simples e fácil de usar|Testa a capacidade do serviço Redis
 
-|是否公平|
+|É justo?|
 |-------|
-|公平|
-|先到先得|
+|Justo|
+|Primeiro a chegar, primeiro a ser servido|
 
-我们称这类秒杀系统为：
+Chamamos este tipo de sistema de seckill de:
 
-> 简单秒杀系统
+> Sistema de Seckill Simples
 
-如果刚开始QPS并不高，redis完全抗的下来的情况，完全可以依赖这个「简单秒杀系统」。
+Se o QPS não for alto no início e o Redis puder suportar totalmente, você pode depender completamente deste "Sistema de Seckill Simples".
 
-## 一个够用的秒杀系统
+## Um Sistema de Seckill Suficiente
 
-**实现原理：** 服务内存限流算法 + redis原子操作减库存
+**Princípio de implementação:** Algoritmo de limitação de fluxo na memória do serviço + redução de estoque por operação atômica do Redis
 
-**图二**
+**Figura 2**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501183037.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501183037.png">
     </a>
 </p>
 
-优点|缺点
+Vantagens|Desvantagens
 ------------|------------
-简单好用|-
+Simples e fácil de usar|-
 
-|是否公平|
+|É justo?|
 |-------|
-|不是很公平|
-|相对的先到先得|
+|Não muito justo|
+|Relativamente primeiro a chegar, primeiro a ser servido|
 
-我们称这类秒杀系统为：
+Chamamos este tipo de sistema de seckill de:
 
-> 够用秒杀系统
+> Sistema de Seckill Suficiente
 
-## 性能再好点的秒杀系统 
+## Um Sistema de Seckill com Melhor Desempenho
 
-**实现原理：** 服务本地内存原子操作减库存
+**Princípio de implementação:** Redução de estoque por operação atômica na memória local do serviço
 
-> 服务本地内存的库存怎么来的？
+> De onde vem o estoque na memória local do serviço?
 
-活动开始前分配好每台机器的库存，推送到机器上。
+Aloque o estoque de cada máquina antes do início da atividade e envie para a máquina.
 
-**图三**
+**Figura 3**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501200309.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501200309.png">
     </a>
 </p>
 
-优点|缺点
+Vantagens|Desvantagens
 ------------|------------
-高性能|不支持动态伸缩容(活动进行期间)，因为库存是活动开始前分配好的
-释放redis压力|-
+Alto desempenho|Não suporta escalonamento dinâmico (durante a atividade), porque o estoque é alocado antes do início da atividade
+Libera pressão do Redis|-
 
-|是否公平|
+|É justo?|
 |-------|
-|不是很公平|
-|不是绝对的先到先得|
+|Não muito justo|
+|Não é absolutamente primeiro a chegar, primeiro a ser servido|
 
 
-我们称这类秒杀系统为：
+Chamamos este tipo de sistema de seckill de:
 
-> 预备库存秒杀系统
+> Sistema de Seckill de Estoque Preparado
 
-## 支持动态伸缩容的秒杀系统
+## Sistema de Seckill com Suporte a Escalonamento Dinâmico
 
-**实现原理：** 服务本地协程Coroutine**定时redis原子操作减部分库存**到本地内存 + 服务本地内存原子操作减库存
+**Princípio de implementação:** Corrotina do serviço local **reduz parte do estoque por operação atômica do Redis periodicamente** para a memória local + redução de estoque por operação atômica na memória local do serviço
 
-**图四**
+**Figura 4**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501200846.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200501200846.png">
     </a>
 </p>
 
-优点|缺点
+Vantagens|Desvantagens
 ------------|------------
-高性能|支持动态伸缩容(活动进行期间)
-释放redis压力|-
-**具备通用性**|-
+Alto desempenho|Suporta escalonamento dinâmico (durante a atividade)
+Libera pressão do Redis|-
+**Possui generalidade**|-
 
-|是否公平|
+|É justo?|
 |-------|
-|不是很公平，但是好了点|
-|几乎先到先得|
+|Não muito justo, mas um pouco melhor|
+|Quase primeiro a chegar, primeiro a ser servido|
 
-我们称这类秒杀系统为：
+Chamamos este tipo de sistema de seckill de:
 
-> 实时预备库存秒杀系统
+> Sistema de Seckill de Estoque Preparado em Tempo Real
 
-## 公平的秒杀系统
+## Sistema de Seckill Justo
 
-**实现原理：** 服务本地Goroutine**定时同步是否售罄**到本地内存 + 队列 + 排队成功轮训(或主动Push)结果
+**Princípio de implementação:** Goroutine do serviço local **sincroniza periodicamente se está esgotado** para a memória local + fila + polling (ou Push ativo) do resultado do sucesso na fila
 
-**图五**
+**Figura 5**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502195413.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502195413.png">
     </a>
 </p>
 
-优点|缺点
+Vantagens|Desvantagens
 ------------|------------
-高性能|开发成本高(需主动通知或轮训排队结果)
-真公平|-
-**具备通用性**|-
+Alto desempenho|Alto custo de desenvolvimento (precisa de notificação ativa ou polling do resultado da fila)
+Verdadeiramente justo|-
+**Possui generalidade**|-
 
-|是否公平|
+|É justo?|
 |-------|
-|很公平|
-|绝对的先到先得|
+|Muito justo|
+|Absolutamente primeiro a chegar, primeiro a ser servido|
 
-我们称这类秒杀系统为：
+Chamamos este tipo de sistema de seckill de:
 
-> 公平排队秒杀系统
+> Sistema de Seckill de Fila Justa
 
-## 骚操作
+## Operação "Sāo" (Astuta/Incomum)
 
-> 上面的秒杀系统还不够完美吗？
+> O sistema de seckill acima não é perfeito o suficiente?
 
-答案：是的。
+Resposta: Sim.
 
-> 还有什么优化的空间？
+> Há mais espaço para otimização?
 
-答案：静态化获取秒杀活动信息的接口。
+Resposta: Estática da interface de obtenção de informações da atividade de seckill.
 
-> 静态化是什么意思?
+> O que significa estática?
 
-答案：比如获取秒杀活动信息是通过接口 `https://seckill.skrshop.tech/v1/acticity/get` 获取的。现在呢，我们需要通过`https://static-api.skrshop.tech/seckill/v1/acticity/get` 这个接口获取。有什么区别呢？看下面：
+Resposta: Por exemplo, obter informações da atividade de seckill é feito através da interface `https://seckill.skrshop.tech/v1/acticity/get`. Agora, precisamos obter através da interface `https://static-api.skrshop.tech/seckill/v1/acticity/get`. Qual é a diferença? Veja abaixo:
 
-服务名|接口|数据存储位置
+Nome do Serviço|Interface|Local de Armazenamento de Dados
 ------|------|------
-秒杀服务|https://seckill.skrshop.tech/v1/acticity/get|秒杀服务内存或redis等
-接口静态化服务|https://static-api.skrshop.tech/seckill/v1/acticity/get|CDN、本地文件
+Serviço de Seckill|https://seckill.skrshop.tech/v1/acticity/get|Memória do serviço de seckill ou Redis, etc.
+Serviço de Estática de Interface|https://static-api.skrshop.tech/seckill/v1/acticity/get|CDN, arquivo local
 
-**以前是这样**
+**Antes era assim**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502195950.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502195950.png" width="66%">
     </a>
 </p>
 
-**变成了这样**
+**Tornou-se assim**
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502200723.png">
         <img src="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200502200723.png" width="100%">
     </a>
 </p>
 
-结果：可以通过接口`https://static-api.skrshop.tech/seckill/v1/acticity/get`就获取到了秒杀活动信息，流量都分摊到了cdn，秒杀服务自身没了这部分的负载。
+Resultado: As informações da atividade de seckill podem ser obtidas através da interface `https://static-api.skrshop.tech/seckill/v1/acticity/get`, o tráfego é distribuído para o CDN, e o próprio serviço de seckill não tem essa carga.
 
-## 完整流程方案①
+## Esquema de Processo Completo ①
 
-完整流程主要涉及三个接口：
+O processo completo envolve principalmente três interfaces:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200718215732.png">
@@ -281,13 +281,13 @@
     </a>
 </p>
 
-|秒杀服务接口|对内还是对外|描述|
+|Interface de Serviço de Seckill|Interno ou Externo|Descrição|
 |-------|-------|-------|
-|秒杀信息获取接口|对外|QPS要求高、所以可以直接对外
-|获取秒杀资格|对外|用户获取加入此商品加入购物车的资格|
-|校验并获取秒杀价格接口|对内|购物车接口校验资格，并返回该商品当前活动的秒杀资格|
+|Interface de Obtenção de Informações de Seckill|Externo|Requisito de QPS alto, portanto pode ser diretamente externo
+|Obter Qualificação de Seckill|Externo|O usuário obtém a qualificação para adicionar este produto ao carrinho|
+|Verificar e Obter Preço de Seckill|Interno|A interface do carrinho verifica a qualificação e retorna a qualificação de seckill da atividade atual para este produto|
 
-## 完整流程方案②
+## Esquema de Processo Completo ②
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200718215817.png">
@@ -295,16 +295,16 @@
     </a>
 </p>
 
-这个方案和上面的有什么区别呢？答：把获取秒杀活动信息的接口统一收敛到了「营销中心」，目的：
+Qual é a diferença entre este esquema e o anterior? Resposta: A interface para obter informações da atividade de seckill foi unificada no "Centro de Marketing", com o objetivo de:
 
-> 把所有的营销活动都抽象到一个「商品活动信息」的接口
+> Abstrair todas as atividades de marketing em uma interface de "Informações de Atividade do Produto"
 
-这样，我们的商品详情页面的读的逻辑就很清晰，如下：
+Desta forma, a lógica de leitura da nossa página de detalhes do produto fica muito clara, da seguinte forma:
 
-- 第1类：商品基础信息接口，获取商品的基础信息(图片、名称、描述、价格、库存等等)
-- 第2类：商品活动信息接口，获取该商品参加的所有营销活动信息(满减、满赠、买送、秒杀等等)
+- Tipo 1: Interface de informações básicas do produto, obtém informações básicas do produto (imagem, nome, descrição, preço, estoque, etc.)
+- Tipo 2: Interface de informações de atividade do produto, obtém todas as informações de atividades de marketing em que o produto participa (desconto por valor, brinde por valor, compra e ganhe, seckill, etc.)
 
-图示：
+Ilustração:
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20200802220914.png">
@@ -312,29 +312,29 @@
     </a>
 </p>
 
-## 总结
+## Resumo
 
-上面我们得到了如下几类`秒杀系统`
+Acima, obtivemos os seguintes tipos de `Sistemas de Seckill`
 
-|秒杀系统|
+|Sistema de Seckill|
 ------------|
-|简单秒杀系统|
-|够用秒杀系统|
-|预备库存秒杀系统|
-|实时预备库存秒杀系统|
-|公平排队秒杀系统|
+|Sistema de Seckill Simples|
+|Sistema de Seckill Suficiente|
+|Sistema de Seckill de Estoque Preparado|
+|Sistema de Seckill de Estoque Preparado em Tempo Real|
+|Sistema de Seckill de Fila Justa|
 
-我想说的是里面没有最好的方案，也没有最坏的方案，只有**适合你**的。
+O que quero dizer é que não existe o melhor esquema, nem o pior esquema, apenas o **adequado para você**.
 
-拿`先到先得`来说，一定要看你们的产品对外宣传，切勿上来就追逐绝对的先到先得。其实你看所有的方案，相对而言都是“先到先得”，比如，活动开始一个小时了你再来抢，那相对于准时的用户自然抢不过，对吧。
+Tomando `primeiro a chegar, primeiro a ser servido` como exemplo, você deve olhar para a propaganda externa do seu produto, não busque o absoluto primeiro a chegar, primeiro a ser servido logo de cara. Na verdade, se você olhar para todos os esquemas, relativamente falando, são todos "primeiro a chegar, primeiro a ser servido". Por exemplo, se a atividade começou há uma hora e você vem tentar pegar, naturalmente não conseguirá pegar contra usuários pontuais, certo?
 
-又如`预备库存秒杀系统`，虽然不支持动态伸缩容。但是如果你的环境满足如下任意条件，就完全够用了。
+Outro exemplo é o `Sistema de Seckill de Estoque Preparado`, embora não suporte escalonamento dinâmico. Mas se o seu ambiente atender a qualquer uma das seguintes condições, é completamente suficiente.
 
-- 秒杀场景结束时间之快，通常几秒就结束了，真实活动可能会发生如下情况：
-    + 服务压力大还没挂：根本就来不及动态伸缩容
-    + 服务压力大已经挂了：可以先暂停活动，服务起来&扩容结束，用剩余库存重新推送
-- 运维自身不具备动态伸缩容的能力
+- O tempo de término do cenário de seckill é rápido, geralmente termina em alguns segundos, e a atividade real pode ter as seguintes situações:
+    + A pressão do serviço é alta, mas não caiu: simplesmente não há tempo para escalonamento dinâmico
+    + A pressão do serviço é alta e caiu: pode pausar a atividade primeiro, serviço sobe & expansão termina, empurrar novamente com o estoque restante
+- A própria operação e manutenção não têm a capacidade de escalonamento dinâmico
 
-所以:
+Portanto:
 
-> 合适好用就行，切勿过度设计。
+> Se for adequado e fácil de usar, está bom, não faça over-design.

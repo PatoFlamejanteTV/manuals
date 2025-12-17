@@ -1,13 +1,13 @@
-# 订单中心
+# Centro de Pedidos
 
-订单中心系列主要内容如下：
+O conteúdo principal da série Centro de Pedidos é o seguinte:
 
-|知识点|
+|Ponto de Conhecimento|
 |-------|
-|订单结算页|
-|创建订单|
-|订单履约|
-|订单状态|
-|订单详情|
-|订单逆向操作|
+|Página de Checkout do Pedido|
+|Criar Pedido|
+|Cumprimento do Pedido (Fulfillment)|
+|Status do Pedido|
+|Detalhes do Pedido|
+|Operação Reversa do Pedido|
 |...|

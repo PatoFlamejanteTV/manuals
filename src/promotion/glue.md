@@ -1,418 +1,418 @@
-# 通用抽奖工具(Glue万能胶)
+# Ferramenta de Sorteio Universal (Glue/Cola Tudo)
 
-## 抽奖需求分析
+## Análise de Requisitos de Sorteio
 
-首先我们先来回顾下**营销体系**的组成：
+Primeiro, vamos revisar a composição do **Sistema de Marketing**:
 
-|营销体系|
+|Sistema de Marketing|
 |---|
-|活动营销系统|
-|销售营销系统|
+|Sistema de Marketing de Atividades|
+|Sistema de Marketing de Vendas|
 
-今天带来的是**活动营销系统**下的第一个独立子系统**通用抽奖工具**的介绍，本篇文章主要分为如下4部分：
+Hoje trazemos a introdução do primeiro subsistema independente sob o **Sistema de Marketing de Atividades**, a **Ferramenta de Sorteio Universal**. Este artigo é dividido principalmente nas 4 partes a seguir:
 
-- 常见抽奖场景与归类
-- 抽奖需求配置
-- 常见奖品类型
-- 抽奖五要素
+- Cenários de sorteio comuns e classificação
+- Configuração de requisitos de sorteio
+- Tipos de prêmios comuns
+- Os cinco elementos do sorteio
 
-## 常见抽奖场景与归类
+## Cenários de sorteio comuns e classificação
 
-下面是我列出来的一些常见的抽奖场景，红包雨、糖果雨、打地鼠、大转盘(九宫格)、考眼力、答题闯关、游戏闯关、支付刮刮乐、积分刮刮乐等等活动营销场景。
+Abaixo estão alguns cenários de sorteio comuns que listei, como chuva de envelopes vermelhos, chuva de doces, Whac-A-Mole (bater na toupeira), roleta da sorte (jogo da velha), teste de visão, responder perguntas para passar de nível, jogo para passar de nível, raspadinha de pagamento, raspadinha de pontos, e outros cenários de marketing de atividades.
 
-|活动名称|描述|
+|Nome da Atividade|Descrição|
 |------|------|
-|红包雨|每日整点抢红包🧧抽奖，每个整点一般可参与一次|
-|糖果雨|每日整点抢糖果🍬抽奖，每个整点一般可参与一次|
-|打地鼠|每日整点打地鼠抽奖，每个整点一般可参与一次|
-|大转盘(九宫格)|某个时间段，转盘抽奖，每个场一般可参N次|
-|考眼力|某个时间段，旋转杯子猜小球在哪个被子里，猜对可抽奖，一般每日可参与N次|
-|答题闯关|每过一关，可参与抽奖，越到后面奖品越贵重|
-|游戏闯关|每过一关，可参与抽奖，越到后面奖品越贵重|
-|支付刮刮乐|支付订单后可刮奖，支付金额越大奖品越贵重|
-|积分刮刮乐|积分刮奖，消费积分额度越大奖品越贵重|
+|Chuva de Envelopes Vermelhos|Sorteio de envelopes vermelhos 🧧 a cada hora cheia diariamente, geralmente pode participar uma vez a cada hora cheia|
+|Chuva de Doces|Sorteio de doces 🍬 a cada hora cheia diariamente, geralmente pode participar uma vez a cada hora cheia|
+|Whac-A-Mole|Sorteio de bater na toupeira a cada hora cheia diariamente, geralmente pode participar uma vez a cada hora cheia|
+|Roleta da Sorte (Jogo da Velha)|Sorteio de roleta em um determinado período de tempo, geralmente pode participar N vezes por sessão|
+|Teste de Visão|Em um determinado período de tempo, adivinhar em qual copo a bola está girando, se acertar pode sortear, geralmente pode participar N vezes por dia|
+|Responder Perguntas|A cada nível passado, pode participar do sorteio, quanto mais longe, mais valiosos os prêmios|
+|Jogo para Passar de Nível|A cada nível passado, pode participar do sorteio, quanto mais longe, mais valiosos os prêmios|
+|Raspadinha de Pagamento|Pode raspar após pagar o pedido, quanto maior o valor do pagamento, mais valioso o prêmio|
+|Raspadinha de Pontos|Raspar com pontos, quanto maior o valor de pontos consumidos, mais valioso o prêmio|
 
-通过上面的活动描述，我们把整个抽奖场景归为以下三类：
+Através da descrição da atividade acima, classificamos todos os cenários de sorteio nas três categorias a seguir:
 
-|类型|活动名称|维度|
+|Tipo|Nome da Atividade|Dimensão|
 |-|-|-|
-|按时间抽奖|红包雨、糖果雨、打地鼠、幸运大转盘(九宫格)、考眼力|时间维度|
-|按抽奖次数抽奖|答题闯关、游戏闯关|参与该活动次数维度|
-|按数额范围区间抽奖|支付刮刮乐、积分刮刮乐|数额区间维度|
+|Sorteio por Tempo|Chuva de Envelopes Vermelhos, Chuva de Doces, Whac-A-Mole, Roleta da Sorte, Teste de Visão|Dimensão de Tempo|
+|Sorteio por Número de Sorteios|Responder Perguntas, Jogo para Passar de Nível|Dimensão de número de participações na atividade atual|
+|Sorteio por Intervalo de Valor|Raspadinha de Pagamento, Raspadinha de Pontos|Dimensão de Intervalo de Valor|
 
-接着我们来看下每类抽奖活动具体的抽奖需求配置。
+Em seguida, vamos ver a configuração de requisitos de sorteio específica para cada tipo de atividade de sorteio.
 
-## 抽奖需求配置
+## Configuração de requisitos de sorteio
 
-本小节每类抽奖活动的需求配置，分为如下三个部分：
+A configuração de requisitos para cada tipo de atividade de sorteio nesta seção é dividida nas três partes a seguir:
 
-- 活动配置
-- 场次配置
-- 奖品配置
+- Configuração da Atividade
+- Configuração da Sessão
+- Configuração do Prêmio
 
-### 首先，第一类: `按时间抽奖`的需求配置
+### Primeiro, a primeira categoria: Configuração de requisitos de `Sorteio por Tempo`
 
-|类型|活动名称|特点|
+|Tipo|Nome da Atividade|Características|
 |-|-|-|
-|按时间抽奖|红包雨、糖果雨、打地鼠、幸运大转盘(九宫格)、考眼力|时间维度|
+|Sorteio por Tempo|Chuva de Envelopes Vermelhos, Chuva de Doces, Whac-A-Mole, Roleta da Sorte, Teste de Visão|Dimensão de Tempo|
 
-|按时间抽奖|是否多场次|单场次次数限制(次)|总场次次数限制(次)|
+|Sorteio por Tempo|Múltiplas Sessões?|Limite de vezes por sessão única (vezes)|Limite total de vezes da sessão (vezes)|
 |-|-|-|-|
-|红包雨|是|1|N|
-|糖果雨|是|1|N|
-|打地鼠|是|N|N|
-|幸运大转盘(九宫格)|否|N|N|
-|考眼力|否|N|N|
+|Chuva de Envelopes Vermelhos|Sim|1|N|
+|Chuva de Doces|Sim|1|N|
+|Whac-A-Mole|Sim|N|N|
+|Roleta da Sorte|Não|N|N|
+|Teste de Visão|Não|N|N|
 
-通过上面的分析我们得到了**活动**和**场次**的概念: 一个活动需要支持多场次的配置。
+Através da análise acima, obtivemos os conceitos de **Atividade** e **Sessão**: uma atividade precisa suportar a configuração de múltiplas sessões.
 
-- 活动activity:配置活动的日期范围
-- 场次session:配置每场的具体时间范围
+- Atividade (activity): Configurar o intervalo de datas da atividade
+- Sessão (session): Configurar o intervalo de tempo específico de cada sessão
 
-**红包雨的需求配置示例：**
+**Exemplo de configuração de requisitos para Chuva de Envelopes Vermelhos:**
 
-> 活动特征：红包雨需要支持多场次。
+> Características da Atividade: Chuva de Envelopes Vermelhos precisa suportar múltiplas sessões.
 
-比如双十二期间三天、每天三场整点红包雨配置如下：
+Por exemplo, durante o Double 12, três dias, três sessões de chuva de envelopes vermelhos em hora cheia por dia são configuradas da seguinte forma:
 
-活动、场次配置：
+Configuração de Atividade e Sessão:
 
-|双十二红包雨|
+|Chuva de Envelopes Vermelhos Double 12|
 |------|
-|活动配置：|
-|2019-12-10 至 2019-12-12|
-|场次配置：|
-|10:00:00 至 10:01:00|
-|12:00:00 至 12:01:00|
-|18:00:00 至 18:01:00|
+|Configuração da Atividade:|
+|2019-12-10 a 2019-12-12|
+|Configuração da Sessão:|
+|10:00:00 a 10:01:00|
+|12:00:00 a 12:01:00|
+|18:00:00 a 18:01:00|
 
-奖品配置：
+Configuração de Prêmio:
 
-|场次|奖品1|奖品2|---|奖品N|
+|Sessão|Prêmio 1|Prêmio 2|---|Prêmio N|
 |------|------|------|---|------|
-|场次10:00:00 至 10:01:00|优惠券2元|空奖|---|无|
-|场次12:00:00 至 12:01:00|优惠券5元|空奖|---|无|
-|场次18:00:00 至 18:01:00|优惠券10元|优惠券20元|---|空奖|
+|Sessão 10:00:00 a 10:01:00|Cupom de 2 yuans|Prêmio Vazio|---|Nenhum|
+|Sessão 12:00:00 a 12:01:00|Cupom de 5 yuans|Prêmio Vazio|---|Nenhum|
+|Sessão 18:00:00 a 18:01:00|Cupom de 10 yuans|Cupom de 20 yuans|---|Prêmio Vazio|
 
 ```md
-上面配置的结果如下：
+Os resultados da configuração acima são os seguintes:
 
-2019-12-10日三场整点红包雨：
+Três sessões de chuva de envelopes vermelhos em hora cheia em 2019-12-10:
 2019-12-10 10:00:00 ~ 10:01:00
 2019-12-10 12:00:00 ~ 12:01:00
 2019-12-10 18:00:00 ~ 18:01:00
 
-2019-12-11日三场整点红包雨：
+Três sessões de chuva de envelopes vermelhos em hora cheia em 2019-12-11:
 2019-12-11 10:00:00 ~ 10:01:00
 2019-12-11 12:00:00 ~ 12:01:00
 2019-12-11 18:00:00 ~ 18:01:00
 
-2019-12-12日三场整点红包雨：
+Três sessões de chuva de envelopes vermelhos em hora cheia em 2019-12-12:
 2019-12-12 10:00:00 ~ 10:01:00
 2019-12-12 12:00:00 ~ 12:01:00
 2019-12-12 18:00:00 ~ 18:01:00
 ```
 
-**幸运大转盘的需求配置示例：**
+**Exemplo de configuração de requisitos para Roleta da Sorte:**
 
-> 活动特征：幸运大转盘不需要多场次。
+> Características da Atividade: Roleta da Sorte não precisa de múltiplas sessões.
 
-比如年货节2020-01-20 至 2020-02-10期间幸运大转盘配置如下：
+Por exemplo, durante o Festival de Ano Novo de 2020-01-20 a 2020-02-10, a Roleta da Sorte é configurada da seguinte forma:
 
-活动、场次配置：
+Configuração de Atividade e Sessão:
 
-|双十二幸运大转盘|
+|Roleta da Sorte Double 12|
 |------|
-|活动配置：|
-|2019-12-10 至 2019-12-12|
-|场次配置：|
-|00:00:00 至 23:59:59|
+|Configuração da Atividade:|
+|2019-12-10 a 2019-12-12|
+|Configuração da Sessão:|
+|00:00:00 a 23:59:59|
 
-奖品配置：
+Configuração de Prêmio:
 
-|场次|奖品1|奖品2|---|奖品N|
+|Sessão|Prêmio 1|Prêmio 2|---|Prêmio N|
 |------|------|------|---|------|
-|场次00:00:00 至 23:59:59|优惠券2元|空奖|---|无|
+|Sessão 00:00:00 a 23:59:59|Cupom de 2 yuans|Prêmio Vazio|---|Nenhum|
 
 ```md
-上面配置的结果如下：
+Os resultados da configuração acima são os seguintes:
 
-幸运大转盘抽奖活动将于 2019-12-10 00:00:00 ~ 2019-12-12 23:59:59 进行
+A atividade de sorteio da Roleta da Sorte ocorrerá de 2019-12-10 00:00:00 ~ 2019-12-12 23:59:59
 ```
 
-注意与思考：双十二幸运大转盘不需要多个场次，只配置一个场次即可，完全复用活动场次模型。
+Atenção e Reflexão: A Roleta da Sorte Double 12 não precisa de várias sessões, apenas uma sessão precisa ser configurada, reutilizando completamente o modelo de sessão de atividade.
 
-### 接着，第二类: `按抽奖次数抽奖`的需求配置
+### Em seguida, a segunda categoria: Configuração de requisitos de `Sorteio por Número de Sorteios`
 
-|类型|活动名称|特点|
+|Tipo|Nome da Atividade|Características|
 |-|-|-|
-|按抽奖次数抽奖|答题闯关、游戏闯关|(成功参与)当前活动次数维度|
+|Sorteio por Número de Sorteios|Responder Perguntas, Jogo para Passar de Nível|(Participação bem-sucedida) Dimensão de número de participações na atividade atual|
 
-**答题闯关的需求配置示例：**
+**Exemplo de configuração de requisitos para Responder Perguntas:**
 
-> 活动特征：每一关的奖品不同，一般越到后面中大奖的几率越大。
+> Características da Atividade: Os prêmios em cada nível são diferentes, geralmente quanto mais longe, maior a probabilidade de ganhar um grande prêmio.
 
-活动、场次配置：
+Configuração de Atividade e Sessão:
 
-|双十二答题闯关|
+|Responder Perguntas Double 12|
 |------|
-|活动配置：|
-|2019-12-10 至 2019-12-12|
-|场次配置：|
-|00:00:00 至 23:59:59|
+|Configuração da Atividade:|
+|2019-12-10 a 2019-12-12|
+|Configuração da Sessão:|
+|00:00:00 a 23:59:59|
 
-奖品配置：
+Configuração de Prêmio:
 
-|双十二答题闯关|奖品|
+|Responder Perguntas Double 12|Prêmio|
 |------|------|
-|第一关|优惠券2元|
-|第二关|优惠券5元|
-|第三关|优惠券10元|
-|第四关|优惠券20元|
-|第五关|优惠券50元|
-|第六关|优惠券100元|
+|Nível 1|Cupom de 2 yuans|
+|Nível 2|Cupom de 5 yuans|
+|Nível 3|Cupom de 10 yuans|
+|Nível 4|Cupom de 20 yuans|
+|Nível 5|Cupom de 50 yuans|
+|Nível 6|Cupom de 100 yuans|
 
-注意与思考：同理活动&场次配置完全复用，同幸运大转盘配置(不需要支持多场次)。
+Atenção e Reflexão: Da mesma forma, a configuração de atividade e sessão é completamente reutilizada, igual à configuração da Roleta da Sorte (não precisa suportar múltiplas sessões).
 
-### 最后，第三类: `按数额范围区间抽奖`的需求配置：
+### Finalmente, a terceira categoria: Configuração de requisitos de `Sorteio por Intervalo de Valor`:
 
-|类型|活动名称|特点|
+|Tipo|Nome da Atividade|Características|
 |-|-|-|
-|按数额范围区间抽奖|支付刮刮乐、积分刮刮乐|数额区间维度|
+|Sorteio por Intervalo de Valor|Raspadinha de Pagamento, Raspadinha de Pontos|Dimensão de Intervalo de Valor|
 
-**支付刮刮乐的需求配置示例：**
+**Exemplo de configuração de requisitos para Raspadinha de Pagamento:**
 
-> 活动特征：不同的订单金额，一般金额越大中大奖的几率越大。
+> Características da Atividade: Diferentes valores de pedidos, geralmente quanto maior o valor, maior a probabilidade de ganhar um grande prêmio.
 
-活动、场次配置:
+Configuração de Atividade e Sessão:
 
-|双十二答题闯关|
+|Responder Perguntas Double 12|
 |------|
-|活动配置：|
-|2019-12-10 至 2019-12-12|
-|场次配置：|
-|00:00:00 至 23:59:59|
+|Configuração da Atividade:|
+|2019-12-10 a 2019-12-12|
+|Configuração da Sessão:|
+|00:00:00 a 23:59:59|
 
-奖品配置：
+Configuração de Prêmio:
 
-|订单金额|奖品1|奖品2|---|奖品N|
+|Valor do Pedido|Prêmio 1|Prêmio 2|---|Prêmio N|
 |------|------|------|---|------|
-|0~100|优惠券2元|空奖|---|无|
-|100~200|优惠券5元|空奖|---|无|
-|200~1000|优惠券10元|优惠券20元|---|空奖|
-|1000以上|优惠券50元|笔记本电脑|---|空奖|
+|0~100|Cupom de 2 yuans|Prêmio Vazio|---|Nenhum|
+|100~200|Cupom de 5 yuans|Prêmio Vazio|---|Nenhum|
+|200~1000|Cupom de 10 yuans|Cupom de 20 yuans|---|Prêmio Vazio|
+|Acima de 1000|Cupom de 50 yuans|Notebook|---|Prêmio Vazio|
 
-注意与思考：同理活动&场次配置完全复用，同幸运大转盘配置(不需要支持多场次)。
+Atenção e Reflexão: Da mesma forma, a configuração de atividade e sessão é completamente reutilizada, igual à configuração da Roleta da Sorte (não precisa suportar múltiplas sessões).
 
-> 总结: 通过上面的分析我们得到了抽奖工具的两个要素**活动**和**场次**。
+> Resumo: Através da análise acima, obtivemos dois elementos da ferramenta de sorteio: **Atividade** e **Sessão**.
 
 
-## 常见奖品类型
+## Tipos de prêmios comuns
 
-> 抽奖抽什么？
+> O que sortear no sorteio?
 
-|常见奖品类型|
+|Tipos de prêmios comuns|
 |-|
-|优惠券|
-|积分|
-|实物|
-|空奖|
+|Cupom|
+|Pontos|
+|Objeto físico|
+|Prêmio Vazio|
 
-> 总结: 我们得到了抽奖工具的另一个要素**奖品**。
+> Resumo: Obtivemos outro elemento da ferramenta de sorteio: **Prêmio**.
 
-## 抽奖五要素
+## Os cinco elementos do sorteio
 
-通过上面的分析我们已经得到了抽奖的**三要素**
+Através da análise acima, já obtivemos os **três elementos** do sorteio
 
-- 活动 
-- 场次 
-- 奖品
+- Atividade
+- Sessão
+- Prêmio
 
-> 那还有什么要素我们还没聊到呢？接下来来看。
+> Então, que outros elementos ainda não discutimos? Vamos ver a seguir.
 
-### 第四要素：中奖概率
+### Quarto elemento: Probabilidade de ganhar
 
-抽奖自然离不开奖品的中奖概率的设置。关于中奖概率我们支持如下灵活的配置：
+O sorteio naturalmente não pode ser separado da configuração da probabilidade de ganhar o prêmio. Sobre a probabilidade de ganhar, suportamos as seguintes configurações flexíveis:
 
-1. 手动设置奖品中奖概率
-2. 自动概率，根据当前奖品的数量、奖品的权重得到中奖概率
+1. Definir manualmente a probabilidade de ganhar o prêmio
+2. Probabilidade automática, obter a probabilidade de ganhar com base na quantidade atual de prêmios e no peso dos prêmios
 
-比如我们某次大促活动红包雨的配置如下：
+Por exemplo, a configuração da Chuva de Envelopes Vermelhos para uma grande promoção é a seguinte:
 
-活动配置|描述
+Configuração da Atividade|Descrição
 ------|------
-活动时间|2019-12-10至2019-12-12
-活动名称|2019双十二大促整点红包雨
-活动描述|2019双十二大促全端整点红包雨活动
-手动设置奖品概率|是
+Tempo da Atividade|2019-12-10 a 2019-12-12
+Nome da Atividade|Chuva de Envelopes Vermelhos em Hora Cheia da Grande Promoção Double 12 2019
+Descrição da Atividade|Atividade de Chuva de Envelopes Vermelhos em Hora Cheia em todos os terminais da Grande Promoção Double 12 2019
+Definir probabilidade de prêmio manualmente|Sim
 
-|场次|奖品类型|具体奖品|奖品数量|中奖概率
+|Sessão|Tipo de Prêmio|Prêmio Específico|Quantidade de Prêmios|Probabilidade de Ganhar
 |-|-|-|-|-|
-|10:00:00 ~ 10:01:00|优惠券|2元优惠券|2000|50%|
-|-|优惠券|5元优惠券|1000|20%|
-|-|空奖|-|5000|30%|
-|12:00:00 ~ 12:01:00|优惠券|2元优惠券|2000|50%|
-|-|优惠券|5元优惠券|1000|20%|
-|-|空奖|-|5000|30%|
-|18:00:00 ~ 18:01:00|优惠券|2元优惠券|2000|50%|
-|-|优惠券|5元优惠券|1000|20%|
-|-|空奖|-|5000|30%|
+|10:00:00 ~ 10:01:00|Cupom|Cupom de 2 yuans|2000|50%|
+|-|Cupom|Cupom de 5 yuans|1000|20%|
+|-|Prêmio Vazio|-|5000|30%|
+|12:00:00 ~ 12:01:00|Cupom|Cupom de 2 yuans|2000|50%|
+|-|Cupom|Cupom de 5 yuans|1000|20%|
+|-|Prêmio Vazio|-|5000|30%|
+|18:00:00 ~ 18:01:00|Cupom|Cupom de 2 yuans|2000|50%|
+|-|Cupom|Cupom de 5 yuans|1000|20%|
+|-|Prêmio Vazio|-|5000|30%|
 
-备注：每轮场次中奖概率之和必须为100%，否则剩余部分默认添加为空奖的中奖概率。
+Nota: A soma das probabilidades de ganhar em cada sessão deve ser 100%, caso contrário, a parte restante será adicionada como probabilidade de ganhar prêmio vazio por padrão.
 
-### 第五要素：均匀投奖
+### Quinto elemento: Distribuição Uniforme de Prêmios
 
-> 如何均匀的抽走奖品?
+> Como sortear os prêmios uniformemente?
 
-答案: 均匀投奖。
+Resposta: Distribuição uniforme de prêmios.
 
-具体方式为拆分总奖品数量，到各个细致具体的时间段。以双十二幸运大转盘为例：
+O método específico é dividir o número total de prêmios em períodos de tempo específicos e detalhados. Tomando a Roleta da Sorte Double 12 como exemplo:
 
-|场次|奖品类型|具体奖品|奖品数量|中奖概率|投奖时间(默认提前5分钟投奖)|投奖数量
+|Sessão|Tipo de Prêmio|Prêmio Específico|Quantidade de Prêmios|Probabilidade de Ganhar|Tempo de Distribuição (Padrão 5 minutos antes da distribuição)|Quantidade de Distribuição
 |-|-|-|-|-|-|-|
-|00:00:00 至 23:59:59|优惠券|2元优惠券|2000|50%|-|-|
+|00:00:00 a 23:59:59|Cupom|Cupom de 2 yuans|2000|50%|-|-|
 |-|-|-|-|-|00:00:00|2000|
 |-|-|-|-|-|06:00:00|2000|
 |-|-|-|-|-|12:00:00|2000|
 |-|-|-|-|-|18:00:00|2000|
 
-这里我们就得到了抽奖的**第五个要素：均匀投奖**。
+Aqui obtivemos o **quinto elemento do sorteio: Distribuição Uniforme de Prêmios**.
 
-## 需求总结
+## Resumo dos Requisitos
 
-通过上面的分析，我们得到抽奖五要素如下：
+Através da análise acima, obtemos os cinco elementos do sorteio da seguinte forma:
 
-抽奖五要素|要素名称
+Cinco Elementos do Sorteio|Nome do Elemento
 ------|------
-第一要素|活动
-第二要素|场次
-第三要素|奖品
-第四要素|中奖概率
-第五要素|均匀投奖
+Primeiro Elemento|Atividade
+Segundo Elemento|Sessão
+Terceiro Elemento|Prêmio
+Quarto Elemento|Probabilidade de Ganhar
+Quinto Elemento|Distribuição Uniforme de Prêmios
 
-同时我们通过**抽奖五要素**也得到了**通用抽奖工具**配置一场抽奖活动的5个基本步骤：
+Ao mesmo tempo, através dos **Cinco Elementos do Sorteio**, também obtivemos os 5 passos básicos para configurar uma atividade de sorteio na **Ferramenta de Sorteio Universal**:
 
-1. 活动配置
-2. 场次配置
-3. 奖品配置
-4. 奖品中奖概率配置
-5. 奖品投奖配置
+1. Configuração da Atividade
+2. Configuração da Sessão
+3. Configuração do Prêmio
+4. Configuração da Probabilidade de Ganhar o Prêmio
+5. Configuração da Distribuição de Prêmios
 
-## 通用抽奖工具系统设计
+## Design do Sistema da Ferramenta de Sorteio Universal
 
-需求已经分析完了，今天我们就来看看这通用抽奖工具具体的设计，分为如下三个部分：
+Os requisitos já foram analisados, hoje vamos ver o design específico desta ferramenta de sorteio universal, dividido nas três partes a seguir:
 
-- DB设计
-- 配置后台设计
-- 接口设计
+- Design de DB
+- Design de Backend de Configuração
+- Design de Interface
 
-## DB设计
+## Design de DB
 
-第一要素`活动配置`的`抽奖活动表`：
+Primeiro elemento `Configuração da Atividade` tabela `Tabela de Atividades de Sorteio`:
 
 ```sql
--- 通用抽奖工具(万能胶Glue) glue_activity 抽奖活动表
+-- Ferramenta de Sorteio Universal (Cola Tudo Glue) glue_activity Tabela de Atividades de Sorteio
 CREATE TABLE `glue_activity` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '活动ID',
-    `serial_no` char(16) unsigned NOT NULL DEFAULT '' COMMENT '活动编号(md5值中间16位)',
-    `name` varchar(255)  NOT NULL DEFAULT '' COMMENT '活动名称',
-    `description` varchar(255)  NOT NULL DEFAULT '' COMMENT '活动描述',
-    `activity_type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '活动抽奖类型1: 按时间抽奖 2: 按抽奖次数抽奖 3:按数额范围区间抽奖',
-    `probability_type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '中奖概率类型1: static 2: dynamic',
-    `times_limit` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '抽奖次数限制，0默认不限制',
-    `start_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '活动开始时间',
-    `end_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '活动结束时间',
-    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT '状态 -1:deleted, 0:disable, 1:enable',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID da Atividade',
+    `serial_no` char(16) unsigned NOT NULL DEFAULT '' COMMENT 'Número da atividade (16 dígitos do meio do valor md5)',
+    `name` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Nome da atividade',
+    `description` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Descrição da atividade',
+    `activity_type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT 'Tipo de sorteio da atividade 1: Sorteio por tempo 2: Sorteio por número de sorteios 3: Sorteio por intervalo de valor',
+    `probability_type` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT 'Tipo de probabilidade de ganhar 1: estática 2: dinâmica',
+    `times_limit` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Limite de vezes de sorteio, 0 padrão sem limite',
+    `start_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de início da atividade',
+    `end_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de término da atividade',
+    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de criação',
+    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do criador',
+    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de atualização',
+    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do modificador',
+    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT 'Status -1: deletado, 0: desativado, 1: ativado',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖活动表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tabela de Atividades de Sorteio';
 ```
 
-第二要素`场次配置`的`抽奖场次表`：
+Segundo elemento `Configuração da Sessão` tabela `Tabela de Sessões de Sorteio`:
 
 ```sql
--- 通用抽奖工具(万能胶Glue) glue_session 抽奖场次表
+-- Ferramenta de Sorteio Universal (Cola Tudo Glue) glue_session Tabela de Sessões de Sorteio
 CREATE TABLE `glue_session` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '场次ID',
-    `activity_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '活动ID',
-    `times_limit` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '抽奖次数限制，0默认不限制',
-    `start_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '场次开始时间',
-    `end_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '场次结束时间',
-    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT '状态 -1:deleted, 0:disable, 1:enable',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID da Sessão',
+    `activity_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da Atividade',
+    `times_limit` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Limite de vezes de sorteio, 0 padrão sem limite',
+    `start_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de início da sessão',
+    `end_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de término da sessão',
+    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de criação',
+    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do criador',
+    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de atualização',
+    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do modificador',
+    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT 'Status -1: deletado, 0: desativado, 1: ativado',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖场次表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tabela de Sessões de Sorteio';
 ```
 
-第三、四要素`奖品配置`的`抽奖场次奖品表`：
+Terceiro e quarto elementos `Configuração do Prêmio` tabela `Tabela de Prêmios da Sessão de Sorteio`:
 
 ```sql
--- 通用抽奖工具(万能胶Glue) glue_session_prizes 抽奖场次奖品表
+-- Ferramenta de Sorteio Universal (Cola Tudo Glue) glue_session_prizes Tabela de Prêmios da Sessão de Sorteio
 CREATE TABLE `glue_session_prizes` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `session_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '场次ID',
-    `node` varchar(255)  NOT NULL DEFAULT '' COMMENT '节点标识 按时间抽奖: 空值, 按抽奖次数抽奖: 第几次参与值, 按数额范围区间抽奖: 数额区间上限值',
-    `prize_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '奖品类型 1:优惠券, 2:积分, 3:实物, 4:空奖 ...',
-    `name` varchar(255)  NOT NULL DEFAULT '' COMMENT '奖品名称',
-    `pic_url` varchar(255)  NOT NULL DEFAULT '' COMMENT '奖品图片',
-    `value` varchar(255)  NOT NULL DEFAULT '' COMMENT '奖品抽象值 优惠券:优惠券ID, 积分:积分值, 实物: sku ID',
-    `probability` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '中奖概率1~100',
-    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT '状态 -1:deleted, 0:disable, 1:enable',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID Auto-incremental',
+    `session_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da Sessão',
+    `node` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Identificador de nó Sorteio por tempo: Vazio, Sorteio por número de sorteios: Qual participação, Sorteio por intervalo de valor: Valor limite superior do intervalo',
+    `prize_type` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tipo de prêmio 1: Cupom, 2: Pontos, 3: Objeto físico, 4: Prêmio vazio ...',
+    `name` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Nome do prêmio',
+    `pic_url` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Imagem do prêmio',
+    `value` varchar(255)  NOT NULL DEFAULT '' COMMENT 'Valor abstrato do prêmio Cupom: ID do cupom, Pontos: Valor dos pontos, Objeto físico: ID do sku',
+    `probability` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Probabilidade de ganhar 1~100',
+    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de criação',
+    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do criador',
+    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de atualização',
+    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do modificador',
+    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT 'Status -1: deletado, 0: desativado, 1: ativado',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖场次奖品表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tabela de Prêmios da Sessão de Sorteio';
 
 ```
 
-第五要素`均匀投奖`的`抽奖场次奖品定时投放器表`：
+Quinto elemento `Distribuição Uniforme de Prêmios` tabela `Tabela de Temporizador de Distribuição de Prêmios da Sessão de Sorteio`:
 
 ```sql
--- 通用抽奖工具(万能胶Glue) glue_session_prizes_timer 抽奖场次奖品定时投放器表
+-- Ferramenta de Sorteio Universal (Cola Tudo Glue) glue_session_prizes_timer Tabela de Temporizador de Distribuição de Prêmios da Sessão de Sorteio
 CREATE TABLE `glue_session_prizes_timer` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `session_prizes_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '抽奖场次奖品ID',
-    `delivery_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '定时投放奖品数量的时间',
-    `prize_quantity` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '奖品数量',
-    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人staff_id',
-    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '修改人staff_id',
-    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT '状态 -1:deleted, 0:wait, 1:success',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID Auto-incremental',
+    `session_prizes_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do Prêmio da Sessão de Sorteio',
+    `delivery_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de distribuição da quantidade de prêmios',
+    `prize_quantity` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT 'Quantidade de prêmios',
+    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de criação',
+    `create_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do criador',
+    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de atualização',
+    `update_by` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'staff_id do modificador',
+    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT 'Status -1: deletado, 0: espera, 1: sucesso',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='抽奖场次奖品定时投放器表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tabela de Temporizador de Distribuição de Prêmios da Sessão de Sorteio';
 
 ```
 
-其他表，抽奖记录&奖品发放记录表：
+Outras tabelas, tabela de registro de sorteio e registro de emissão de prêmios:
 
 ```sql
--- 通用抽奖工具(万能胶Glue) glue_user_draw_record 用户抽奖记录表
+-- Ferramenta de Sorteio Universal (Cola Tudo Glue) glue_user_draw_record Tabela de Registro de Sorteio do Usuário
 CREATE TABLE `glue_user_draw_record` (
-    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `activity_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '活动ID',
-    `session_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '场次ID',
-    `prize_type_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '奖品类型ID',
-    `user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建人user_id',
-    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
-    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT '状态 -1:未中奖, 1:已中奖 , 2: 发奖失败 , 3: 已发奖',
-    `log` text COMMENT '操作信息等记录',
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID Auto-incremental',
+    `activity_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da Atividade',
+    `session_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID da Sessão',
+    `prize_type_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'ID do Tipo de Prêmio',
+    `user_id` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'user_id do criador',
+    `create_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de criação',
+    `update_at` int(11) unsigned NOT NULL DEFAULT '0' COMMENT 'Tempo de atualização',
+    `status` tinyint(1)  NOT NULL DEFAULT '0' COMMENT 'Status -1: não ganhou, 1: ganhou , 2: falha na emissão , 3: emitido',
+    `log` text COMMENT 'Registros de informações de operação, etc.',
     PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户抽奖记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Tabela de Registro de Sorteio do Usuário';
 ```
 
-## 配置后台设计
+## Design de Backend de Configuração
 
-### 创建活动
+### Criar Atividade
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20191229224816.png?imageMogr2/thumbnail/1934x1567!/format/webp/blur/1x0/quality/75|imageslim" data-lightbox="roadtrip">
@@ -420,7 +420,7 @@ CREATE TABLE `glue_user_draw_record` (
     </a>
 </p>
 
-### 创建活动场次
+### Criar Sessão de Atividade
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20191230081157.png?imageMogr2/thumbnail/971x2069!/format/webp/blur/1x0/quality/75%7Cimageslim" data-lightbox="roadtrip">
@@ -440,7 +440,7 @@ CREATE TABLE `glue_user_draw_record` (
     </a>
 </p>
 
-### 活动列表
+### Lista de Atividades
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20191229223706.png?imageMogr2/thumbnail/1338x761!/format/webp/blur/1x0/quality/75%7Cimageslim" data-lightbox="roadtrip">
@@ -449,38 +449,38 @@ CREATE TABLE `glue_user_draw_record` (
 </p>
 
 
-## 接口设计
+## Design de Interface
 
-1. 获取活动信息 GET {version}/glue/activity
+1. Obter informações da atividade GET {version}/glue/activity
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-serial_no|string|Y|活动编号
+serial_no|string|Y|Número da atividade
 
-响应内容：
+Conteúdo da resposta:
 ```json
 {
     "code": "200",
     "msg": "OK",
     "result": {
-        "serial_no": "string, 活动编号",
-        "type": "number, 活动抽奖类型1: 按时间抽奖 2: 按抽奖次数抽奖 3:按数额范围区间抽奖",
-        "name": "string, 活动名称",
-        "description": "string, 活动描述",
-        "start_time": "number, 活动开始时间",
-        "end_time": "number, 活动开始时间",
-        "remaining_times": "number, 活动抽奖次数限制，0不限制",
+        "serial_no": "string, Número da atividade",
+        "type": "number, Tipo de sorteio da atividade 1: Sorteio por tempo 2: Sorteio por número de sorteios 3: Sorteio por intervalo de valor",
+        "name": "string, Nome da atividade",
+        "description": "string, Descrição da atividade",
+        "start_time": "number, Tempo de início da atividade",
+        "end_time": "number, Tempo de término da atividade",
+        "remaining_times": "number, Limite de vezes de sorteio da atividade, 0 sem limite",
         "sessions_list":[
             {
-                "start_time": "number, 场次开始时间",
-                "end_time": "number, 场次开始时间",
-                "remaining_times": "number, 场次抽奖次数限制，0不限制",
+                "start_time": "number, Tempo de início da sessão",
+                "end_time": "number, Tempo de término da sessão",
+                "remaining_times": "number, Limite de vezes de sorteio da sessão, 0 sem limite",
                 "prizes_list": [
                     {
-                        "name": "string, 奖品名称",
-                        "pic_url": "string, 奖品图片"
+                        "name": "string, Nome do prêmio",
+                        "pic_url": "string, Imagem do prêmio"
                     }
                 ]
             }
@@ -489,34 +489,34 @@ serial_no|string|Y|活动编号
 }
 ```
 
-2. 抽奖 POST {version}/glue/activity/draw
+2. Sorteio POST {version}/glue/activity/draw
 
-请求参数：
+Parâmetros de requisição:
 
-字段|类型|是否必传|描述
+Campo|Tipo|Obrigatório|Descrição
 ------------|------------|------------|------------
-serial_no|string|Y|活动编号
-uid|number|Y|用户ID
+serial_no|string|Y|Número da atividade
+uid|number|Y|ID do usuário
 
-响应内容：
+Conteúdo da resposta:
 ```json
-// 中奖
+// Ganhou
 {
     "code": "200",
     "msg": "OK",
     "result": {
         "serial_no": "string, spu id",
-        "act_remaining_times": "number, 本活动抽奖剩余次数，0不限制",
-        "session_remaining_times": "number, 本场次抽奖剩余次数，0不限制",
+        "act_remaining_times": "number, Vezes restantes de sorteio nesta atividade, 0 sem limite",
+        "session_remaining_times": "number, Vezes restantes de sorteio nesta sessão, 0 sem limite",
         "prizes_info": 
         {
-            "name": "string, 奖品名称",
-            "pic_url": "string, 奖品图片"
+            "name": "string, Nome do prêmio",
+            "pic_url": "string, Imagem do prêmio"
         }
     }
 }
 
-// 未中奖
+// Não ganhou
 {
     "code": "401",
     "msg": "",
@@ -526,6 +526,6 @@ uid|number|Y|用户ID
 }
 ```
 
-## 结语
+## Conclusão
 
-活动营销系统中的第一个字系统**通用抽奖工具**今天讲完了，希望对大家有一定的帮助或启示。
+O primeiro subsistema no sistema de marketing de atividades, a **Ferramenta de Sorteio Universal**, foi abordado hoje. Espero que seja útil ou inspirador para todos.

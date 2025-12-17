@@ -1,20 +1,20 @@
-# 电商搜索业务介绍
+# Introdução ao Negócio de Busca em E-commerce
 
-本次带来电商搜索业务的介绍，电商搜索系列分为两篇文章：
+Esta vez trazemos uma introdução ao negócio de busca de e-commerce, a série de busca de e-commerce é dividida em dois artigos:
 
-- 电商搜索业务介绍
-- 由浅到深，入门搜索原理
+- Introdução ao Negócio de Busca em E-commerce
+- Do Raso ao Fundo, Introdução aos Princípios de Busca
 
-今天是一篇文章，开门见山，搜索业务涉及的关键词如下：
+Hoje é um artigo, indo direto ao ponto, as palavras-chave envolvidas no negócio de busca são as seguintes:
 
-- 搜索框
-- 搜索底纹
-- 搜索建议词
-- 搜索直达
-- 搜索历史词
-- 搜索热词
-- 搜索激活页
-- 搜索结果页
+- Caixa de busca (Search Box)
+- Texto de fundo da busca (Placeholder)
+- Palavras de sugestão de busca (Suggestion)
+- Busca direta (Direct Search)
+- Palavras do histórico de busca (History)
+- Palavras quentes de busca (Hot Words)
+- Página de ativação de busca
+- Página de resultados de busca (SERP)
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129182049.png" data-lightbox="roadtrip">
@@ -22,13 +22,13 @@
     </a>
 </p>
 
-我们按搜索过程归类：
+Classificamos pelo processo de busca:
 
-搜索过程：
+Processo de busca:
 
-- 搜索前
-- 搜索中
-- 搜索后
+- Antes da busca
+- Durante a busca
+- Após a busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129182113.png" data-lightbox="roadtrip">
@@ -36,8 +36,9 @@
     </a>
 </p>
 
-接着，通过市面常见的厂商产品截图来看看搜索各个业务场景的具体逻辑，便于大家理解。
-# 搜索前
+Em seguida, através de capturas de tela de produtos de fabricantes comuns no mercado, veremos a lógica específica de vários cenários de negócios de busca para facilitar o entendimento de todos.
+
+# Antes da Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129182129.png" data-lightbox="roadtrip">
@@ -46,7 +47,7 @@
 </p>
 
 
-## 搜索框 
+## Caixa de Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213721.png" data-lightbox="roadtrip">
@@ -54,7 +55,7 @@
     </a>
 </p>
 
-## 搜索底纹
+## Texto de Fundo da Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213720.png" data-lightbox="roadtrip">
@@ -62,7 +63,7 @@
     </a>
 </p>
 
-# 搜索中
+# Durante a Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129182149.png" data-lightbox="roadtrip">
@@ -70,7 +71,7 @@
     </a>
 </p>
 
-## 搜索激活页
+## Página de Ativação de Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107214238.png" data-lightbox="roadtrip">
@@ -78,9 +79,9 @@
     </a>
 </p>
 
-## 搜索建议词
+## Palavras de Sugestão de Busca
 
-### 普通搜索建议词
+### Palavras de Sugestão de Busca Comuns
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213714.png" data-lightbox="roadtrip">
@@ -88,16 +89,17 @@
     </a>
 </p>
 
-### 搜索直达
+### Busca Direta
 
-#### 活动直达
+#### Busca Direta de Atividade
 
-搜索一个关键字之后，直接跳转到一个活动专题页面。
+Após pesquisar uma palavra-chave, pule diretamente para uma página de tópico de atividade.
 
-#### 商品直达
+#### Busca Direta de Produto
 
-搜索一个关键字之后，直接跳转到一个商品详情页面。
-## 搜索热词
+Após pesquisar uma palavra-chave, pule diretamente para a página de detalhes de um produto.
+
+## Palavras Quentes de Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213712.png" data-lightbox="roadtrip">
@@ -105,7 +107,7 @@
     </a>
 </p>
 
-## 搜索历史词
+## Palavras do Histórico de Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213713.png" data-lightbox="roadtrip">
@@ -113,7 +115,7 @@
     </a>
 </p>
 
-# 搜索后
+# Após a Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220129182208.png" data-lightbox="roadtrip">
@@ -121,7 +123,7 @@
     </a>
 </p>
 
-## 搜索结果页面
+## Página de Resultados de Busca
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213716.png" data-lightbox="roadtrip">
@@ -129,7 +131,7 @@
     </a>
 </p>
 
-## 大搜
+## Busca Ampla (Big Search)
 
 <p align="center">
     <a href="" data-lightbox="roadtrip">
@@ -137,7 +139,7 @@
     </a>
 </p>
 
-## 垂搜
+## Busca Vertical
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107213715.png" data-lightbox="roadtrip">
@@ -145,11 +147,11 @@
     </a>
 </p>
 
-## 纠错
+## Correção de Erros
 
-先来看看中纠错：
+Vamos ver primeiro a correção de erros média:
 
-### 中纠错
+### Correção de Erros Média
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220107214840.jpg" data-lightbox="roadtrip">
@@ -157,11 +159,11 @@
     </a>
 </p>
 
-如果输入了一个错别字，会自动帮纠错为正确的关键字，但是**会**友情提示用户是否还是按输入的词搜索。
+Se você digitar um erro de digitação, ele ajudará automaticamente a corrigir para a palavra-chave correta, mas **irá** gentilmente perguntar ao usuário se ele ainda deseja pesquisar pela palavra digitada.
 
-### 强纠错
+### Correção de Erros Forte
 
-相对于中纠错，如果输入了一个错别字，会自动帮纠错为正确的关键字，但是**不会**友情提示用户是否还是按输入的词搜索。
+Em comparação com a correção de erros média, se você digitar um erro de digitação, ele ajudará automaticamente a corrigir para a palavra-chave correta, mas **não irá** gentilmente perguntar ao usuário se ele ainda deseja pesquisar pela palavra digitada.
 
 <p align="center">
     <a href="" data-lightbox="roadtrip">
@@ -169,11 +171,11 @@
     </a>
 </p>
 
-### 弱纠错
+### Correção de Erros Fraca
 
-略。
+Omitido.
 
-# 总结
+# Resumo
 
 <p align="center">
     <a href="http://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20220109223034.png" data-lightbox="roadtrip">

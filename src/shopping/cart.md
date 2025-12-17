@@ -1,321 +1,321 @@
-# 购物体系
+# Sistema de Compras
 
-## 购物车服务
+## Serviço de Carrinho de Compras
 
-对于一个电商来讲，购物车是整个购买流程最重要的一步。因为电商发展到今天购物车不仅仅只是为了完成打包下单的功能；也是收藏、对比、促销提醒、相关推荐的重要展示窗口。如此多的能力我们该如何设计保证购物车的高性能、以及良好的扩展能力来满足未来的发展呢？
+Para um e-commerce, o carrinho de compras é a etapa mais importante de todo o processo de compra. Isso porque, no desenvolvimento do e-commerce até hoje, o carrinho de compras não serve apenas para a função de empacotar e fazer o pedido; é também uma importante janela de exibição para favoritos, comparação, lembretes de promoção e recomendações relacionadas. Com tantas capacidades, como devemos projetar para garantir o alto desempenho do carrinho de compras e uma boa capacidade de expansão para atender ao desenvolvimento futuro?
 
-今天开始我们就以一个假定的场景来输出一个购物车设计：某某电商平台，是一个多租户模式（我们前面的诸多设计都是多租户模式），用户可以把商品加入到购物车，并切按照商户纬度来展示、排序。当然购物车也支持常规的各种操作：选择、删除、清空、商品失效等。并且有相关的促销能够提醒用户。同时为了监控、运营，要支撑购物车数据同步到监控、数仓等能力。
+A partir de hoje, usaremos um cenário hipotético para apresentar um design de carrinho de compras: uma determinada plataforma de e-commerce, que é um modelo multi-inquilino (nossos designs anteriores são todos modelos multi-inquilino), onde os usuários podem adicionar produtos ao carrinho de compras e exibi-los e ordená-los de acordo com a dimensão do comerciante. Claro, o carrinho de compras também suporta várias operações convencionais: selecionar, excluir, limpar, invalidar produtos, etc. E há promoções relacionadas que podem lembrar os usuários. Ao mesmo tempo, para monitoramento e operação, é necessário suportar a sincronização dos dados do carrinho de compras para monitoramento, data warehouse e outras capacidades.
 
-本文会从用户使用的角度以及服务端两个角度来讲解系统的能力。本篇我们的主要目的是说清楚购物车的能力以及一些逻辑。下一篇会进行购物车模型设计以及接口定义。
+Este artigo explicará as capacidades do sistema a partir da perspectiva do usuário e do servidor. O objetivo principal deste artigo é esclarecer as capacidades do carrinho de compras e algumas lógicas. O próximo artigo abordará o design do modelo do carrinho de compras e a definição da interface.
 
-### 用户视角
+### Perspectiva do Usuário
 
-我们先来定义一下在用户侧用户操作购物车的功能有哪些？
+Vamos primeiro definir quais são as funções de operação do carrinho de compras no lado do usuário?
 
-![用户则需求](https://dayutalk.cn/img/user-cart-c.png)
+![Requisitos do usuário](https://dayutalk.cn/img/user-cart-c.png)
 
-一个购物车基本的能力基本上都在上图中，下面我们一一来分解。
+As capacidades básicas de um carrinho de compras estão basicamente na figura acima, vamos decompor uma a uma abaixo.
 
-#### 操作
+#### Operações
 
-我们从用户的角度来看，购物车对于用户来说可以添加商品到购物车（加购物车、立即购买都属于一种添加方式）；加入进购物车后，不想要了可以删除该商品（删一个、删多个、清空）；想多买可以修改购买数量，发现钱不够可以减少购买数量；或者发现红色的比白色更漂亮，可以在购物车方便的进行更换规格；对于一些价格很贵的商品，能够在购物车添加一些保障服务（其实是绑定的虚拟商品）；在要去结算的时候，还会提供选择能力让用户决定哪些商品真的本次要购买。
+Do ponto de vista do usuário, o carrinho de compras permite adicionar produtos (adicionar ao carrinho, comprar agora são formas de adição); após adicionar ao carrinho, se não quiser mais, pode excluir o produto (excluir um, excluir vários, limpar); se quiser comprar mais, pode modificar a quantidade de compra, se descobrir que não tem dinheiro suficiente, pode reduzir a quantidade; ou se descobrir que o vermelho é mais bonito que o branco, pode alterar a especificação convenientemente no carrinho; para alguns produtos muito caros, pode adicionar alguns serviços de garantia no carrinho (na verdade, são produtos virtuais vinculados); ao ir para o checkout, também fornecerá a capacidade de seleção para o usuário decidir quais produtos realmente comprar desta vez.
 
-通过上面的描述我们可以看到这个过程是有其内在联系的。这里说一下关于选中功能，业界有两种做法，各有优劣，我们来看一下。淘宝的产品选中状态是保存在客户端的，并且默认不选中，刷新、重新打开APP状态会消失；京东、苏宁这一类是保存在服务端，会记录用户选中状态。针对这两种情况各有优劣。
+Através da descrição acima, podemos ver que este processo tem suas conexões internas. Aqui falamos sobre a função de seleção, existem duas práticas na indústria, cada uma com vantagens e desvantagens, vamos ver. O estado de seleção do produto do Taobao é salvo no cliente e, por padrão, não é selecionado, o estado desaparece ao atualizar ou reabrir o APP; JD, Suning e similares são salvos no servidor, registrando o estado de seleção do usuário. Existem prós e contras para essas duas situações.
 
-**客户端：**
+**Cliente:**
 
-1. 性能，选中/不选中的逻辑直接放在本地做，减少网络请求
-2. 体验，多端不能同步，但是购物车相对来说更像是一个收藏夹，每次用户自己选择也无可厚非
-3. 计算，价格计算时需要上传本地选中商品（也可以本地计算）
-4. 实现，主要靠客户端实现，与服务端无关，研发解耦合
+1. Desempenho: a lógica de selecionado/não selecionado é feita diretamente no local, reduzindo as requisições de rede.
+2. Experiência: não pode sincronizar em múltiplos terminais, mas o carrinho de compras é relativamente mais como uma lista de favoritos, não há problema se o usuário selecionar novamente a cada vez.
+3. Cálculo: ao calcular o preço, é necessário enviar os produtos selecionados localmente (também pode ser calculado localmente).
+4. Implementação: depende principalmente da implementação do cliente, irrelevante para o servidor, desacoplamento de desenvolvimento.
 
-**服务端：**
+**Servidor:**
 
-1. 性能，每次操作选中都需要调用服务端，而该操作可能很频繁，除了网络损耗，服务端也需要考虑该如何快速找到修改的商品
-2. 体验，多端同步状态，记录历史状态
-3. 计算，服务端可获取数据，请求时无须上传额外数据
-4. 实现，服务端与客户端需要商定如何交互，以及返回数据（每次选中会导致价格变化），耦合在一起
+1. Desempenho: cada operação de seleção precisa chamar o servidor, e essa operação pode ser muito frequente, além da perda de rede, o servidor também precisa considerar como encontrar rapidamente o produto modificado.
+2. Experiência: sincronização de estado em múltiplos terminais, registro de histórico de estado.
+3. Cálculo: o servidor pode obter dados, sem necessidade de enviar dados extras na requisição.
+4. Implementação: o servidor e o cliente precisam concordar sobre como interagir e retornar dados (cada seleção causará alteração de preço), acoplados.
 
-个人认为这两种方式并无谁具备明显优势，完全是一种基于业务模式以及团队情况来做选择。我们这里后续的设计会基于在服务端保存商品选中状态。
+Pessoalmente, acho que nenhum dos dois métodos tem uma vantagem óbvia, é completamente uma escolha baseada no modelo de negócios e na situação da equipe. Nosso design subsequente aqui será baseado em salvar o estado de seleção do produto no servidor.
 
-在整个操作逻辑中，有个两个比较重要的地方单独说明一下：购买方式与购物车内修改购买属性
+Em toda a lógica de operação, há dois lugares importantes para explicar separadamente: método de compra e modificação de atributos de compra no carrinho.
 
-##### 购买方式
+##### Método de Compra
 
-主要的购买方式有立即购买、加入购物车、拼团购三种方式。
+Os principais métodos de compra são: comprar agora, adicionar ao carrinho e compra em grupo.
 
-首先普通的加入购物车没什么太多要说的。重点来看下立即购买与拼团。
+Primeiro, a adição comum ao carrinho de compras não tem muito o que dizer. Vamos focar em comprar agora e compra em grupo.
 
-立即购买在于操作上来说就是选择商品后直接到了订单确认页面，没有购物车中去结算这一步。但是它的实现却可以依赖购物车的逻辑来做，我们来看一下使用购物车与不使用购物车实现这个逻辑有什么差别？
+Comprar agora, em termos de operação, é selecionar o produto e ir diretamente para a página de confirmação do pedido, sem a etapa de ir ao carrinho para finalizar a compra. Mas sua implementação pode depender da lógica do carrinho de compras. Vamos ver qual a diferença entre usar o carrinho de compras e não usar o carrinho de compras para implementar essa lógica?
 
-如果使用购物车来实现，也就是用户点击立即购买时，商品本质上还是加入到购物车中，但这个购物车却与原型的购物车不同，因为该购物车只能加一个商品，并且每次操作都会被覆盖。在视角效果上也是直接从商品详情页面跳转到订单确认页面。来看看这种方式的好处
+Se usarmos o carrinho de compras para implementar, ou seja, quando o usuário clica em comprar agora, o produto é essencialmente adicionado ao carrinho, mas este carrinho é diferente do carrinho original, pois este carrinho só pode adicionar um produto e será sobrescrito a cada operação. No efeito visual, também salta diretamente da página de detalhes do produto para a página de confirmação do pedido. Vamos ver os benefícios desta abordagem:
 
-1. 与购物车在订单确认、下单逻辑上一致，内部可以直接通过购物车获取数据
-2. 需要一个独立的专门用于一键购买的购物车来实现，内存有消耗
+1. Consistente com a lógica de confirmação de pedido e checkout do carrinho de compras, internamente pode obter dados diretamente através do carrinho.
+2. Requer um carrinho de compras independente dedicado para compra com um clique, com consumo de memória.
 
-另外一种实现方式使用一个新的数据结构，因为一般来说一键购买更简单，它只需要商品信息、价格信息即可。每次交互均可以根据sku_id来获取。
+Outra forma de implementação usa uma nova estrutura de dados, porque geralmente a compra com um clique é mais simples, precisando apenas de informações do produto e informações de preço. Cada interação pode ser obtida com base no sku_id.
 
-1. 订单确认、下单逻辑上需要进行改造，每次请求之间要传递约定参数
-2. 节省内存，上下交互通过sku_id来保证
+1. A lógica de confirmação de pedido e checkout precisa ser reformulada, parâmetros acordados devem ser passados entre cada requisição.
+2. Economia de memória, interação superior e inferior garantida pelo sku_id.
 
-我们会采用使用在服务端一键购买以独立的购物车形式来实现。购物车的数据模型一致，保证了后续处理流程上的一致。
+Adotaremos a implementação usando um carrinho de compras independente para compra com um clique no servidor. O modelo de dados do carrinho de compras é consistente, garantindo consistência no fluxo de processamento subsequente.
 
-对于拼团，他其实分为两部分，首先是开团这个动作，当团成立后。我们可以选择将成团的商品加入普通购物车，同时可以加购其它商品。也可以选择将成团商品加入一键购买的购物车，保证成团商品只能买一个。拼团模式更像是加入购物车的一个前置条件。本质上它对于购物车的设计没有影响。
+Para a compra em grupo, ela é dividida em duas partes: primeiro é a ação de abrir o grupo. Quando o grupo é formado, podemos optar por adicionar os produtos do grupo ao carrinho comum, e ao mesmo tempo adicionar outros produtos. Também podemos optar por adicionar os produtos do grupo ao carrinho de compra com um clique, garantindo que o produto do grupo só possa ser comprado uma vez. O modo de compra em grupo é mais como uma pré-condição para adicionar ao carrinho. Essencialmente, não afeta o design do carrinho de compras.
 
-##### 购物车内修改购买属性
+##### Modificação de Atributos de Compra no Carrinho
 
-这里主要是指可以在购物车便捷的操作一些需要在spu纬度操作的事情，比如：变更规格（也就是更换sku），以及选择绑定到spu纬度的服务（保险、延保等）。
+Aqui refere-se principalmente à conveniência de operar algumas coisas que precisam ser operadas na dimensão spu no carrinho de compras, por exemplo: alterar especificações (ou seja, trocar sku), e selecionar serviços vinculados à dimensão spu (seguro, garantia estendida, etc.).
 
-我们重点说一下选择绑定的服务。例如：我们买一个手机，厂家提供了延保、各种其它附加服务，一般情况这种服务都是虚拟商品。但是这有个特殊情况。这些保障服务首先不能单独购买，其次他是跟主商品的数量息息相关。比如买两个手机，如果选择了加购服务，那么这些服务的数量必须是2，这会是一个联动关系。
+Vamos focar na seleção de serviços vinculados. Por exemplo: compramos um celular, o fabricante oferece garantia estendida, vários outros serviços adicionais, geralmente esses serviços são produtos virtuais. Mas há uma situação especial. Esses serviços de garantia primeiro não podem ser comprados separadamente, segundo, estão intimamente ligados à quantidade do produto principal. Por exemplo, se comprar dois celulares, se escolher adicionar serviços, a quantidade desses serviços deve ser 2, isso será uma relação vinculada.
 
-这些保障服务是不能进行单独购买的，它一定要跟特定的商品捆绑销售。
+Esses serviços de garantia não podem ser comprados separadamente, devem ser vendidos vinculados a produtos específicos.
 
-服务端在存储这部分数据时一定需要考虑如何保存这种层级关系，这部分我们后面模型设计的时候大家会看到。
+Ao armazenar essa parte dos dados no servidor, deve-se considerar como salvar essa relação hierárquica, essa parte veremos no design do modelo mais tarde.
 
-![绑定商品关系](https://dayutalk.cn/img/product-relations.png)
+![Relação de produtos vinculados](https://dayutalk.cn/img/product-relations.png)
 
-#### 提醒
+#### Lembrete
 
-促销提醒很简单，返回的购物车数据，每一个商品应该携带当前的促销信息。这部分重点在于怎么获取促销信息，会在服务端看到。
+O lembrete de promoção é muito simples, os dados do carrinho retornados, cada produto deve carregar as informações atuais da promoção. O ponto chave aqui é como obter as informações da promoção, o que veremos no servidor.
 
-然后说下购物车数量的提醒，也就是显示当前购物车商品的数量。一般来说进入到APP就会调用一个接口，获取用户的未读消息数、购物车商品数等。这里是需要非常高的读取速度。那么这种需求该如何满足呢？
+Então fale sobre o lembrete da quantidade do carrinho, ou seja, exibir a quantidade atual de produtos no carrinho. Geralmente, ao entrar no APP, uma interface será chamada para obter o número de mensagens não lidas do usuário, o número de produtos no carrinho, etc. Isso requer uma velocidade de leitura muito alta. Então, como essa demanda pode ser atendida?
 
-**方案一：** 我们可以设计一个结构保存了用户相关的这种提醒信息数量，每次直接读取这个数据即可。不需要去跟消息服务、购物车服务打交道拿这些数据。
+**Plano 1:** Podemos projetar uma estrutura para salvar o número dessas informações de lembrete relacionadas ao usuário e ler esses dados diretamente a cada vez. Não há necessidade de lidar com o serviço de mensagens ou serviço de carrinho para obter esses dados.
 
-**方案二：** 在消息、购物车的模型中均设计一个保存总数量的字段，在读取数据的接口中，通过并发的方式调用这些服务拿到数据后进行聚合，这样在速度上只取决于最慢的服务。
+**Plano 2:** Projetar um campo para salvar a quantidade total nos modelos de mensagem e carrinho. Na interface de leitura de dados, chamar esses serviços simultaneamente para obter os dados e agregá-los, de modo que a velocidade dependa apenas do serviço mais lento.
 
-这里我们的设计会采用 **方案二**，因为这样在某种程度上效率可以得到保证，同时整个系统的结构数据的一致性更容易得到保障。当然这里有个细节一定要注意，并发读取一定要设计超时，不要因为某个服务读数问题而导致拖累整个接口的性能。
+Aqui nosso design adotará o **Plano 2**, porque assim a eficiência pode ser garantida até certo ponto, e a consistência dos dados da estrutura de todo o sistema é mais fácil de garantir. Claro, há um detalhe aqui que deve ser observado: a leitura concorrente deve ter um timeout projetado, para não arrastar o desempenho de toda a interface devido a problemas de leitura de um determinado serviço.
 
-接下来再来看看促销，这部分除了提醒，还需要提供对应的入口，让用户完成促销的操作。比如说某个商品有券，那么可以直接提供入口去领取；可凑单，有入口进入凑单列表并选择商品等。这部分需要解决的问题是服务端该如何及时从商品纬度拿到这些促销活动。
+Em seguida, vamos olhar para as promoções. Além dos lembretes, esta parte também precisa fornecer as entradas correspondentes para permitir que os usuários concluam as operações de promoção. Por exemplo, se um produto tiver um cupom, uma entrada pode ser fornecida diretamente para coletá-lo; se puder ser combinado para desconto, haverá uma entrada para a lista de combinação e seleção de produtos, etc. O problema que precisa ser resolvido nesta parte é como o servidor pode obter essas atividades promocionais da dimensão do produto em tempo hábil.
 
-从用户的视角看完了，我们再来站在研发的角度看看服务端有哪些事情要做
+Visto da perspectiva do usuário, vamos olhar para o que o servidor precisa fazer da perspectiva de pesquisa e desenvolvimento.
 
-### 研发视角
+### Perspectiva de P&D
 
-还是先来看看需求的汇总图：
+Vamos olhar para o gráfico de resumo dos requisitos novamente:
 
-![服务端则需求](https://dayutalk.cn/img/user-cart-s.png)
+![Requisitos do servidor](https://dayutalk.cn/img/user-cart-s.png)
 
-#### 存储
+#### Armazenamento
 
-对于存储，首选肯定是内存存储，至于要不要落库，我觉得没有必要。说下我的理由：
+Para armazenamento, a primeira escolha é definitivamente armazenamento em memória. Quanto a salvar no banco de dados, acho que não é necessário. Aqui estão meus motivos:
 
-1. 购物车的数据相对变化非常频繁，落库成本比较高，如果异步方式落库，很难保障一致性
-2. 极端情况，cache奔溃了，仅仅需要用户重新加入购物车，并且我们可以通过cache的持久化机制来保证数据的恢复
+1. Os dados do carrinho de compras mudam com muita frequência, o custo de salvar no banco de dados é relativamente alto. Se for salvo de forma assíncrona, é difícil garantir a consistência.
+2. Em casos extremos, se o cache falhar, o usuário só precisa adicionar ao carrinho novamente, e podemos garantir a recuperação de dados através do mecanismo de persistência do cache.
 
-所以对于购物车，我们只会把数据完全保存在内存中。
+Portanto, para o carrinho de compras, salvaremos os dados inteiramente na memória.
 
-#### 商品销售类型发生变化
+#### Mudança no Tipo de Venda do Produto
 
-现在我们来讨论 **商品销售类型发生变化** 这个问题。这是什么意思呢？大家想一下：比如我把A商品加入到购物车，但是一直没有结算。这时运营说针对A商品搞一个活动，拿出10个库存5折购。那么问题来了，对于之前购物车中就有该商品的用户该如何处理？**这里解决的主要问题是：购物车有该商品的用户不能直接以5折买**。几种方案，我们来看一下：
+Agora vamos discutir o problema da **Mudança no Tipo de Venda do Produto**. O que isso significa? Pense nisso: por exemplo, adicionei o produto A ao carrinho, mas não finalizei a compra. Neste momento, a operação diz que há uma atividade para o produto A, pegue 10 estoques com 50% de desconto. Então vem o problema: como lidar com usuários que já tinham esse produto no carrinho antes? **O principal problema a ser resolvido aqui é: usuários que já têm o produto no carrinho não podem comprar diretamente com 50% de desconto**. Vários planos, vamos ver:
 
-**方案一：** 促销配置后，所有购物车中有该商品的用户失效或删除，这个方案首先被pass，操作成本太高，并且用户体验差
+**Plano 1:** Após a configuração da promoção, todos os usuários que tiverem esse produto no carrinho terão o produto invalidado ou excluído. Este plano é descartado primeiro, o custo da operação é muito alto e a experiência do usuário é ruim.
 
-**方案二：** 购物车中要区分同一个SKU，不同销售类型。也就是说在我们的购物车中不是按照SKU的纬度来加商品，而是通过 **SKU+售卖类型** 来生成一个唯一识别码。
+**Plano 2:** O carrinho de compras deve distinguir o mesmo SKU com diferentes tipos de venda. Ou seja, em nosso carrinho de compras, não adicionamos produtos pela dimensão SKU, mas geramos um código de identificação único através de **SKU + Tipo de Venda**.
 
-可以看到 **方案二** 解决了同一个sku在购物车并存的问题，并且库存之前互相不影响。不过这里又有一个问题？商品的售卖类型（或者说这个标记），该怎么什么地方设置？好像商品系统可以设计、促销系统也可以设置。我们的逻辑中会在促销系统中进行配置。因为商品属于基础逻辑，如果一改就是全局库存受到影响。活动结束后很难做到自动正常售卖。因此这个标记应该落到活动中进行设置（活动设置时会通过促销系统获取该商品之前的活动是否互斥，以确保配置的活动不会互相矛盾）。
+Pode-se ver que o **Plano 2** resolve o problema da coexistência do mesmo sku no carrinho e o estoque não afeta um ao outro. Mas há outro problema aqui? O tipo de venda do produto (ou esta marca), onde deve ser configurado? Parece que o sistema de produtos pode projetar, e o sistema de promoção também pode configurar. Em nossa lógica, configuraremos no sistema de promoção. Porque o produto pertence à lógica básica, se alterado, o estoque global será afetado. Após o término da atividade, é difícil conseguir a venda normal automática. Portanto, esta marca deve ser configurada na atividade (ao configurar a atividade, será verificado através do sistema de promoção se a atividade anterior do produto é mutuamente exclusiva, para garantir que as atividades configuradas não se contradigam).
 
-#### 依赖系统
+#### Sistemas Dependentes
 
-购物车系统依赖了非常多的其它系统。
+O sistema de carrinho de compras depende de muitos outros sistemas.
 
-- 商品系统
-- 库存系统
-- 促销系统
-- 结算系统
+- Sistema de Produtos
+- Sistema de Estoque
+- Sistema de Promoção
+- Sistema de Checkout
 
-这些依赖的系统，有的是为了传输数据，有的是为了获取数据。我们按照这两个纬度来看一下。
+Esses sistemas dependentes, alguns são para transmissão de dados, outros para obtenção de dados. Vamos olhar para essas duas dimensões.
 
-##### 促销提醒与计算
+##### Lembrete de Promoção e Cálculo
 
-服务端要解决的是促销的提醒与价格计算问题。
+O servidor precisa resolver os problemas de lembrete de promoção e cálculo de preço.
 
-现来说计算，针对这部分最佳的方式是，调用结算中心的价格计算。我们来看一下购物车中的价格计算与订单结算时的价格计算的差异。
+Falando em cálculo, a melhor maneira para essa parte é chamar o cálculo de preço do centro de checkout. Vamos ver a diferença entre o cálculo de preço no carrinho de compras e o cálculo de preço no checkout do pedido.
 
-首先购物车中计算价格时不知道用户的地址，这会影响运费的计算；再是不知道用券的情况。那么其实如果解决了这两个问题，我们就可以让价格计算出自同一个逻辑，仅仅是部分入参不同罢了。因此我们这里计算时可以按照最高运费来计算，同时用券默认在购物车都不使用券。对于促销问题这里是可以通过促销系统确认选中的商品可以享受哪些价格的。因此促销的价格应该计算在内。
+Primeiro, ao calcular o preço no carrinho de compras, o endereço do usuário é desconhecido, o que afetará o cálculo do frete; segundo, o uso de cupons é desconhecido. Então, se resolvermos esses dois problemas, podemos fazer o cálculo de preço vir da mesma lógica, apenas alguns parâmetros de entrada são diferentes. Portanto, podemos calcular com base no frete mais alto aqui e, ao mesmo tempo, assumir que nenhum cupom é usado no carrinho por padrão. Para problemas de promoção, aqui é possível confirmar através do sistema de promoção quais preços os produtos selecionados podem desfrutar. Portanto, o preço da promoção deve ser calculado.
 
-接下来在再来说说如何为用户高效的提供促销的信息。先从我们的配置视野出发。
+Em seguida, vamos falar sobre como fornecer informações de promoção aos usuários de forma eficiente. Começando pela nossa visão de configuração.
 
-我们在配置一个促销活动或者发一张券时，都是将多个商品归到一个促销活动或者券的下面。如果按照活动、券的纬度来获取商品效率相对比较高。
+Ao configurar uma atividade promocional ou emitir um cupom, agrupamos vários produtos sob uma atividade promocional ou cupom. Se obtivermos produtos com base na dimensão de atividade e cupom, a eficiência é relativamente alta.
 
-![活动-商品](https://dayutalk.cn/img/activity-product.png)
+![Atividade-Produto](https://dayutalk.cn/img/activity-product.png)
 
-但是在购物车的场景中发生了一个变化。我们是需要从商品纬度获取到该商品的所有活动信息（全平台活动、店铺活动）；
-那么购物车中为了展示这些信息该怎么做？很常规的一个做法（也确实不少公司是这样）：把所有活动信息取出来，遍历出所有跟该商品相关的信息。这种做法效率很低，并且无法满足大规模的应用场景，比如双十一期间。
+Mas houve uma mudança no cenário do carrinho de compras. Precisamos obter todas as informações de atividade desse produto (atividades de toda a plataforma, atividades da loja) a partir da dimensão do produto;
+Então, como fazer para exibir essas informações no carrinho? Uma prática muito comum (e de fato muitas empresas fazem isso): retirar todas as informações de atividade e percorrer todas as informações relacionadas a esse produto. Essa abordagem é muito ineficiente e não pode atender a cenários de aplicação em grande escala, como durante o Double 11.
 
-因此这里为了满足该需求，促销系统需要提供一个能力按照商品获取对应促销（活动、券）。因此一般来讲促销系统配置的活动不能仅仅是按照活动纬度存储，同时还需要生成一份商品纬度的促销信息。
+Portanto, para atender a essa demanda aqui, o sistema de promoção precisa fornecer uma capacidade de obter promoções correspondentes (atividades, cupons) de acordo com o produto. Portanto, geralmente, as atividades configuradas pelo sistema de promoção não podem ser armazenadas apenas na dimensão da atividade, mas também precisam gerar uma cópia das informações de promoção na dimensão do produto.
 
-![商品-活动](https://dayutalk.cn/img/product-activity.png)
+![Produto-Atividade](https://dayutalk.cn/img/product-activity.png)
 
-#### 购物车数据分析
+#### Análise de Dados do Carrinho
 
-对于购物车数据来说，前端会通过埋点记录加入购物车数据的情况，但是前端埋点一般是记录触发了某个前端操作，但是并不知道该操作是否成功与否。以及无法及时了解当前整体购物车的数据情况。
+Para dados do carrinho de compras, o frontend registrará a adição de dados ao carrinho através de rastreamento (tracking), mas o rastreamento frontend geralmente registra que uma operação frontend foi acionada, mas não sabe se a operação foi bem-sucedida ou não. E não é possível entender a situação geral dos dados do carrinho em tempo hábil.
 
-为了让运营团队更完整的了解购物车当前情况，我们通过后端打本地日志，然后通过日志收集的方式将日志同步给数据、监控等服务。
+Para permitir que a equipe de operação entenda a situação atual do carrinho de compras de forma mais completa, registramos logs locais através do backend e, em seguida, sincronizamos os logs com serviços de dados, monitoramento, etc., através da coleta de logs.
 
-#### 失效与排序
+#### Invalidação e Ordenação
 
-还有两个小部分没有讲到，一是商品该如何失效，比如：库存没有了、下架了；二是购物车中的商品是多个店铺的，排序的策略是什么？
+Há mais duas pequenas partes que não foram mencionadas: primeiro, como o produto deve ser invalidado, por exemplo: sem estoque, fora de linha; segundo, os produtos no carrinho são de várias lojas, qual é a estratégia de ordenação?
 
-由于本文我们还只是讨论需求，不涉及具体的模型设计，因此只是介绍方案。首先是商品失效，这很像一个软删除操作，一旦设置，用户侧看到的商品将是无法进行结算的，只能进行删除操作。
+Como este artigo discute apenas requisitos e não envolve design de modelo específico, apresentamos apenas o plano. Primeiro é a invalidação do produto, que é muito parecida com uma operação de soft delete. Uma vez definida, o produto visto pelo lado do usuário não poderá ser finalizado, apenas a operação de exclusão poderá ser realizada.
 
-对于排序我们会采用的设计是：根据某个店铺在购物车中最后发生操作的时间，最新的操作肯定在最上面。
+Para ordenação, o design que adotaremos é: de acordo com o tempo da última operação de uma determinada loja no carrinho, a operação mais recente certamente estará no topo.
 
-### 结尾
+### Conclusão
 
-通过上面我们基本上搞清楚了购物车设计中我们要做什么，依赖的系统要提供什么能力。下篇开始进入数据模型的设计、前后端接口设计。
+Através do acima, basicamente esclarecemos o que devemos fazer no design do carrinho de compras e quais capacidades os sistemas dependentes devem fornecer. O próximo artigo começará a entrar no design do modelo de dados e no design da interface frontend e backend.
 
-如果你对购物车上面的需求还有哪些补充，欢迎留言。我们一起来完善。
+Se você tiver algum complemento aos requisitos do carrinho de compras acima, deixe uma mensagem. Vamos aperfeiçoar juntos.
 
 
-## 购物车架构
+## Arquitetura do Carrinho de Compras
 
-在上一篇文章 [购物车设计之需求分析](https://dayutalk.cn/2019/12/09/%E8%B4%AD%E7%89%A9%E8%BD%A6%E8%AE%BE%E8%AE%A1%E4%B9%8B%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90/) 描述了购物车的通用需求。本文重点则在如何实现上进行架构上的设计（业务+系统架构）。
+No artigo anterior [Análise de Requisitos de Design de Carrinho de Compras](https://dayutalk.cn/2019/12/09/%E8%B4%AD%E7%89%A9%E8%BD%A6%E8%AE%BE%E8%AE%A1%E4%B9%8B%E9%9C%80%E6%B1%82%E5%88%86%E6%9E%90/) foram descritos os requisitos gerais do carrinho de compras. Este artigo foca no design da arquitetura (negócios + arquitetura do sistema) sobre como implementá-lo.
 
-### 说明
+### Explicação
 
-架构设计可以分为三个层面：
-- 业务架构
-- 系统架构
-- 技术架构
+O design da arquitetura pode ser dividido em três níveis:
+- Arquitetura de Negócios
+- Arquitetura de Sistema
+- Arquitetura Técnica
 
-快速简单的说明下三个架构的意思；当我们拿到购物车需求时，我们说用Golang来实现，存储用Redis；这描述的是技术架构；我们对购物车代码项目进行代码分层，设计规范，以及依赖系统的规划这叫系统架构；
+Explicação rápida e simples dos três significados de arquitetura; quando recebemos os requisitos do carrinho de compras, dizemos usar Golang para implementar e Redis para armazenamento; isso descreve a arquitetura técnica; realizamos a divisão em camadas do código do projeto do carrinho de compras, especificações de design e planejamento de sistemas dependentes, isso é chamado de arquitetura de sistema;
 
-那业务架构是什么呢？业务架构本质上是对系统架构的文字语言描述；什么意思？我们拿到一个需求首先要跟需求方进行沟通，建立统一的认知。比如：规范名词（购物车中说的商品与商品系统中商品的含义是不同的）；建立大家都能明白的模型，购物车、用户、商品、订单这些实体之间的互动，以及各自具备什么功能。
+Então, o que é arquitetura de negócios? A arquitetura de negócios é essencialmente a descrição textual da arquitetura do sistema; o que isso significa? Quando recebemos um requisito, primeiro precisamos nos comunicar com o solicitante para estabelecer um entendimento unificado. Por exemplo: padronizar terminologia (o significado de produto no carrinho de compras e produto no sistema de produtos é diferente); estabelecer modelos que todos possam entender, a interação entre entidades como carrinho de compras, usuário, produto, pedido e quais funções cada um possui.
 
-在业务架构分析上有很多方法论，比如：领域驱动设计，但是它并不是唯一的业务架构分析方法，也并不是说最好的。适合你的就是最好的。我们常用的实体关系图、UML图也属于业务架构领域；
+Existem muitas metodologias na análise de arquitetura de negócios, por exemplo: Domain Driven Design (DDD), mas não é o único método de análise de arquitetura de negócios, nem necessariamente o melhor. O que serve para você é o melhor. Nossos diagramas de relacionamento de entidades e diagramas UML comumente usados também pertencem ao campo da arquitetura de negócios;
 
-这里需要强点一点的是，不管你用什么方式来建模设计，有设计总比没设计强，其次一定要将建模的内容体现到你的代码中去。
+O que precisa ser enfatizado aqui é que, não importa qual método você use para modelar e projetar, ter um design é melhor do que não ter design. Em segundo lugar, certifique-se de refletir o conteúdo da modelagem em seu código.
 
-本文在业务架构上的分析借助了 `DDD` （领域驱动设计）思想；还是那句话`适合的就是最好的`。
+A análise da arquitetura de negócios neste artigo utiliza o pensamento `DDD` (Domain Driven Design); novamente, `o que serve é o melhor`.
 
-### 业务架构
+### Arquitetura de Negócios
 
-通过前面的需求分析，我们已经明确我们的购物车要干什么了。先来看一下一个典型的用户操作购物车过程。
+Através da análise de requisitos anterior, já esclarecemos o que nosso carrinho de compras deve fazer. Vamos primeiro ver um processo típico de operação do usuário no carrinho de compras.
 
-![用户旅程](https://dayutalk.cn/img/cart-sys-00.png)
+![Jornada do Usuário](https://dayutalk.cn/img/cart-sys-00.png)
 
-在这个过程中，用户使用购物车这个载体完成了商品的购买流程；不断流动的数据是商品，购物车这个载体是稳定的。这是我们系统中的稳定点与变化点。
+Neste processo, o usuário utiliza o veículo carrinho de compras para completar o processo de compra de produtos; o dado que flui constantemente é o produto, e o veículo carrinho de compras é estável. Estes são os pontos estáveis e pontos de mudança em nosso sistema.
 
-商品的流动方式可能多种多样，比如从不同地方加入购物车，不同方式加入购物车，生命周期在购物车中也不一样；但是这个流程是稳定的，一定是先让购物车中存在商品，然后才能去结算产生订单。
+A forma como os produtos fluem pode variar, por exemplo, adicionar ao carrinho de lugares diferentes, adicionar ao carrinho de maneiras diferentes, o ciclo de vida no carrinho também é diferente; mas esse fluxo é estável, deve-se primeiro deixar o produto existir no carrinho e depois ir para o checkout para gerar o pedido.
 
-商品在购物车中的生命周期如下：
+O ciclo de vida do produto no carrinho de compras é o seguinte:
 
-![过程](https://dayutalk.cn/img/cart-sys-01.jpg)
+![Processo](https://dayutalk.cn/img/cart-sys-01.jpg)
 
-按照这个过程，我们来看一下每个阶段对应的操作。
+De acordo com este processo, vamos ver as operações correspondentes a cada etapa.
 
-![过程对应的操作](https://dayutalk.cn/img/cart-sys-02.jpg)
+![Operações correspondentes ao processo](https://dayutalk.cn/img/cart-sys-02.jpg)
 
-这里注意一点，加车前这个操作其实我们可以放到购物车的添加操作中，但是由于这部分是非常不稳定且多变的。我们将其独立出来，方便后续进行扩展而不影响相对比较稳定的购物车阶段。
+Note aqui que a operação antes de adicionar ao carrinho pode ser colocada na operação de adição do carrinho, mas como esta parte é muito instável e variável, nós a isolamos para facilitar a expansão subsequente sem afetar a etapa de carrinho relativamente estável.
 
-> 上面这三个阶段，按照DDD中的概念，应该叫做实体，他们整体构成了购物车这个域；今天我们先不讲这些概念，就先略过，后面有机会单独发文讲解。
+> As três etapas acima, de acordo com o conceito em DDD, devem ser chamadas de Entidades, e juntas constituem o domínio do carrinho de compras; hoje não vamos falar sobre esses conceitos, vamos pular, e se houver oportunidade mais tarde, publicarei um artigo separado para explicar.
 
-#### 加车前
+#### Antes de Adicionar ao Carrinho
 
-通过流程分析，我们总结出了系统需要具备的操作接口，以及这些接口对应的实体，现在我们先来看加车前主要要做些什么；
+Através da análise de fluxo, resumimos as interfaces de operação que o sistema precisa ter e as entidades correspondentes a essas interfaces. Agora vamos ver o que precisa ser feito antes de adicionar ao carrinho;
 
-加车前其实主要就是对准备加入的购物车商品进行各个纬度的校验，检查是否满足要求。
+Antes de adicionar ao carrinho, é basicamente realizar verificações em várias dimensões para os produtos que estão prestes a ser adicionados, verificando se atendem aos requisitos.
 
-在让用户加车前，我们首先解决的是用户从哪里卖，然后进行验证？因为同一个商品从不同渠道购买是存在不同情况的，比如：小米手机，我们是通过秒杀买，还是通过好友众筹买，或者商城直接购买，价格存在差异，但是实际上他是同一个商品；
+Antes de permitir que o usuário adicione ao carrinho, a primeira coisa que resolvemos é de onde o usuário está comprando e depois verificamos? Porque o mesmo produto comprado de canais diferentes tem situações diferentes, por exemplo: celular Xiaomi, compramos via seckill (oferta relâmpago), ou via crowdfunding de amigos, ou compra direta no shopping, o preço é diferente, mas na verdade é o mesmo produto;
 
-第二个问题是是否具备购买资格，还是上面说的，秒杀、众筹这个加车操作，不是谁都可以添加的，得现有资格。那么资格的检查也是放到这里；
+A segunda questão é se possui qualificação de compra. Como mencionado acima, a operação de adicionar ao carrinho de seckill ou crowdfunding não está disponível para qualquer um, deve-se ter qualificação. Então a verificação de qualificação também é colocada aqui;
 
-第三个问题是对这个购买的商品进行商品属性上的验证，如是否上下架，有库存，限购数量等等。
+A terceira questão é verificar os atributos do produto comprado, como se está disponível/fora de estoque, se tem estoque, limite de quantidade de compra, etc.
 
-而且大家会发现，这里的验证条件可能是非常多变的。如何构建一个方便扩展的代码呢？
+E todos descobrirão que as condições de verificação aqui podem ser muito variáveis. Como construir um código fácil de estender?
 
-![加车的验证](https://dayutalk.cn/img/cart-sys-03.jpg)
+![Verificação de Adição ao Carrinho](https://dayutalk.cn/img/cart-sys-03.jpg)
 
-整个加车过程，重要的就是根据来源来区分不同的验证。我们有两种选择方式。
+Em todo o processo de adição ao carrinho, o importante é distinguir diferentes verificações com base na fonte. Temos duas opções de escolha.
 
-方式一：通过策略模式+门面模式的方式来搞定。策略就是根据不同的加车来源进行不同的验证，门面就是根据不同的来源封装一个个策略；
+Opção 1: Fazer através do modo Strategy + modo Facade. A estratégia é realizar diferentes verificações com base em diferentes fontes de adição ao carrinho, e a fachada é encapsular estratégias individuais com base em diferentes fontes;
 
-方式二：通过责任链模式，但是这里需要有一个变化，这个链在执行过程中，可以选择跳过某些节点，比如：秒杀不需要库存、也不需要众筹的验证；
+Opção 2: Através do modo Chain of Responsibility (Cadeia de Responsabilidade), mas aqui precisa haver uma mudança, esta cadeia no processo de execução pode escolher pular certos nós, por exemplo: seckill não precisa de verificação de estoque, nem de crowdfunding;
 
-通过综合的分析我选择了责任链的模式。贴一下核心代码
+Através de uma análise abrangente, escolhi o modo Chain of Responsibility. Postando o código principal:
 
-```
-// 每个验证逻辑要实现的接口
+```go
+// Interface que cada lógica de verificação deve implementar
 type Handler interface {
-	Skipped(in interface{}) bool // 这里判断是否跳过
-	HandleRequest(in interface{}) error // 这里进行各种验证
+	Skipped(in interface{}) bool // Aqui decide se deve pular
+	HandleRequest(in interface{}) error // Aqui realiza várias verificações
 }
 
-// 责任链的节点
+// Nó da Cadeia de Responsabilidade
 type RequestChain struct {
 	Handler
 	Next *RequestChain
 }
 
-// 设置handler
+// Definir handler
 func (h *RequestChain) SetNextHandler(in *RequestChain) *RequestChain {
 	h.Next = in
 	return in
 }
 ```
 
-关于设计模式，大家可以看我小伙伴的github：https://github.com/TIGERB/easy-tips/tree/master/go/src/patterns
+Sobre padrões de design, vocês podem ver o github do meu colega: https://github.com/TIGERB/easy-tips/tree/master/go/src/patterns
 
-#### 购物车
+#### Carrinho de Compras
 
-说完了加车前，现在来看购物车这一部分。我们在之前曾讨论过，购物车可能会有多种形态的，比如：存储多个商品一起结算，某个商品立即结算等。因此购物车一定会根据渠道来进行购物车类型的选择。
+Tendo falado sobre antes de adicionar ao carrinho, agora vamos ver a parte do carrinho de compras. Discutimos anteriormente que o carrinho de compras pode ter várias formas, por exemplo: armazenar vários produtos para checkout juntos, checkout imediato de um determinado produto, etc. Portanto, o carrinho de compras certamente selecionará o tipo de carrinho com base no canal.
 
-这部分的操作相对是比较稳定的。我们挑几个比较重要的操作来讲一下思路即可。
+As operações desta parte são relativamente estáveis. Escolhemos algumas operações importantes para falar sobre a ideia.
 
-##### 加入购物车
+##### Adicionar ao Carrinho de Compras
 
-通过把条件验证的前置，会发现在进行加车操作时，这部分逻辑已经变得非常的轻量了。要做的主要是下面几个部分的逻辑。
+Ao colocar a verificação de condições como pré-requisito, descobrirá que ao realizar a operação de adicionar ao carrinho, essa parte da lógica tornou-se muito leve. O que precisa ser feito é principalmente a lógica das seguintes partes.
 
-![加入购物车](https://dayutalk.cn/img/cart-sys-04.jpg)
+![Adicionar ao Carrinho de Compras](https://dayutalk.cn/img/cart-sys-04.jpg)
 
-这里有几个取巧的地方，首先是获取商品的逻辑，由于在前面验证的时候也会用到，因此这里前面获取后会通过参数的方式继续往后传递，因此这里不需要在读库或者调用服务来获取；
+Existem alguns truques aqui. Primeiro é a lógica de obter o produto. Como também será usada na verificação anterior, aqui após a obtenção anterior, será passada adiante via parâmetros, então não há necessidade de ler o banco de dados ou chamar o serviço para obter novamente;
 
-其次这里需要把当前用户现有购物车数据获取到，然后将添加的这个商品添加进来。这是一个类似合并操作，原来这个商品是存在，相当于数量加一；需要注意这个商品跟现存的商品有没有父子关系，有没有可能加入后改变了某个活动规则，比如：原来买了2个送1个赠品，现在再添加了一个变成3个，送2个赠品；
+Em segundo lugar, aqui é necessário obter os dados do carrinho existente do usuário atual e, em seguida, adicionar este produto. Esta é uma operação semelhante a uma fusão (merge). Se o produto já existir, equivale a adicionar um na quantidade; é necessário observar se este produto tem relação pai-filho com produtos existentes, se é possível que a adição altere alguma regra de atividade, por exemplo: originalmente comprava 2 e ganhava 1 brinde, agora adicionando mais um vira 3 e ganha 2 brindes;
 
-> 注意：这里的添加并不是在购物车直接改数量，可能就是在列表、详情页直接添加添加。
+> Nota: A adição aqui não é necessariamente alterar a quantidade diretamente no carrinho, pode ser adicionar diretamente na lista ou página de detalhes.
 
-通过将合并后的购物车数据，通过营销活动检查确认ok后，直接回写到存储中。
+Ao fundir os dados do carrinho e confirmar que está ok através da verificação de atividade de marketing, grave diretamente no armazenamento.
 
-##### 合并购物车
+##### Fundir Carrinho de Compras
 
-为什么会有合并购物车这个操作？因为一般电商都是准许游客身份进行操作的，因此当用户登录后需要将二者进行合并。
+Por que existe a operação de fundir carrinhos? Porque geralmente o e-commerce permite operações como visitante, então quando o usuário faz login, é necessário fundir os dois.
 
-这里的合并很多部分的逻辑是可以与加入购物车复用的逻辑。比如：合并后的数据都需要检查是否合法，然后覆写回存储中。因此大家可以看到这里的关联性。设计的方法在某种程度上要通用。
+A lógica de muitas partes da fusão aqui pode ser reutilizada com a lógica de adicionar ao carrinho. Por exemplo: os dados após a fusão precisam ser verificados quanto à legalidade e, em seguida, sobrescritos no armazenamento. Portanto, todos podem ver a correlação aqui. O método de design deve ser genérico até certo ponto.
 
-##### 购物车列表
+##### Lista do Carrinho de Compras
 
-购物车列表这是一个非常重要的接口，原则上购物车接口会提供两种类型，一种简版，一种完全版本；
+A lista do carrinho de compras é uma interface muito importante. Em princípio, a interface do carrinho fornecerá dois tipos, uma versão simplificada e uma versão completa;
 
-简版的列表接口主要是用在类似PC首页右上角之类获取简单信息；完全版本就是在购物车列表中会用到。
+A interface de lista simplificada é usada principalmente para obter informações simples, como no canto superior direito da página inicial do PC; a versão completa é usada na lista do carrinho de compras.
 
-在实际实现中，购物车绝不仅仅是一个读取接口那么简单。因为我们都知道不管是商品信息、活动信息都是在不断的发生变化。因此每次的读取接口必然需要检查当前购物车中数据的合法性，然后发现不一致后需要覆写原存储的数据。
+Na implementação real, o carrinho de compras definitivamente não é tão simples quanto uma interface de leitura. Porque todos sabemos que, seja informações do produto ou informações da atividade, estão mudando constantemente. Portanto, cada interface de leitura deve verificar a legalidade dos dados no carrinho atual e, se encontrar inconsistência, deve sobrescrever os dados originais armazenados.
 
-![购物车列表](https://dayutalk.cn/img/cart-sys-05.jpg)
+![Lista do Carrinho de Compras](https://dayutalk.cn/img/cart-sys-05.jpg)
 
-也有一些做法会在每个接口都去检查数据的合法性，我建议为了性能考虑，部分接口可以适当放宽检查，在获取列表时再进行完整的检查。比如添加接口，我只会检测我添加的商品的合法性，绝不会对整个购物车进行检查。因为该操作之后一般都会调用列表操作，那么此时还会进行校验，二者重复操作，因此只取后者。
+Também existem algumas práticas que verificam a legalidade dos dados em cada interface. Sugiro que, por questões de desempenho, algumas interfaces podem relaxar a verificação adequadamente e realizar uma verificação completa ao obter a lista. Por exemplo, na interface de adição, verificarei apenas a legalidade do produto que adicionei, e nunca verificarei todo o carrinho. Porque após essa operação geralmente a operação de lista será chamada, e então a verificação será feita. As duas operações se repetem, então apenas a última é tomada.
 
-#### 结算
+#### Checkout
 
-结算包括两部分，结算页的详情信息与提交订单。结算页可以说是在购物车列表上的一个包装，因为结算页与列表页最大的不同是需要用户选择配送地址（虚拟商品另说），此时会产生更明确的价格信息，其他基本一致。因此在设计购物车列表接口的时候，一定要考虑充分的通用性。
+O checkout inclui duas partes: informações detalhadas da página de checkout e envio do pedido. A página de checkout pode ser considerada um "wrapper" sobre a lista do carrinho, pois a maior diferença entre a página de checkout e a página de lista é que o usuário precisa selecionar o endereço de entrega (produtos virtuais à parte). Neste momento, informações de preço mais explícitas serão geradas, o resto é basicamente o mesmo. Portanto, ao projetar a interface da lista do carrinho, deve-se considerar a generalidade suficiente.
 
-这里另外一个需要注意的是：立即购买，我们也会通过结算页接口来实现，但是内部其实还是会调用添加接口，将商品添加到购物车中；有三个需要注意的地方，首先是这个添加操作是服务内部完成的，对于服务调用方是不需要感知这个加入操作的存在；其次是这个购物车在Redis中的Key是独立于普通购物车的，否则二者的商品耦合在一起非常难于操作处理；最后立即购买的购物车要考虑账号多终端登录的时候，彼此数据不能互相影响，这里可以用每个端的uuid来作为购物车的标记避免这种情况。
+Outra coisa a notar aqui é: Compra Imediata. Também implementaremos através da interface da página de checkout, mas internamente ainda chamará a interface de adição para adicionar o produto ao carrinho; há três lugares para prestar atenção. Primeiro, esta operação de adição é concluída dentro do serviço, e a parte que chama o serviço não precisa perceber a existência dessa operação de adição; segundo, a Key deste carrinho no Redis é independente do carrinho comum, caso contrário, os produtos dos dois acoplados juntos são muito difíceis de operar e processar; finalmente, o carrinho de compra imediata deve considerar que, quando a conta está logada em vários terminais, os dados não podem afetar uns aos outros. Aqui, o uuid de cada terminal pode ser usado como a marca do carrinho para evitar essa situação.
 
-购物车的最后一步是生成订单，这一步最要紧的是需要给购物车加锁，避免提交过程中数据被篡改，多说一句，很多人写的Redis分布式锁代码都存在缺陷，大家一定要注意原子性的问题，这类文章网络上很多不再赘述。
+O último passo do carrinho de compras é gerar o pedido. O mais importante nesta etapa é bloquear o carrinho para evitar que os dados sejam adulterados durante o processo de envio. Apenas para acrescentar, muitos códigos de bloqueio distribuído Redis escritos por muitas pessoas têm defeitos, todos devem prestar atenção à questão da atomicidade. Existem muitos artigos desse tipo na rede, não vou repetir.
 
-加锁成功之后，我们这里有多种做法，一种是按照DB涉及组织数据开始写表，这适用于业务量要求不大，比如订单每秒下单量不超过2000K的；那如果你的系统并发要求非常高怎么办？
+Após o bloqueio bem-sucedido, temos várias práticas aqui. Uma é organizar os dados de acordo com o design do DB e começar a gravar na tabela. Isso é adequado para situações onde o volume de negócios não é grande, por exemplo, o volume de pedidos não excede 2000K por segundo; E se o requisito de concorrência do seu sistema for muito alto?
 
-其实也很简单，高性能的三大法宝之一：异步；我们提交的时候直接将数据快照写入MQ中，然后通过异步的方式进行消费处理，可以通过通过控制消费者的数量来提升处理能力。这种方法虽然性能提升，但是复杂度也会上升，大家需要根据自己的实际情况来选择。
+Na verdade, também é muito simples, uma das três armas mágicas de alto desempenho: assincronia; quando enviamos, gravamos diretamente o snapshot dos dados no MQ e, em seguida, processamos o consumo de forma assíncrona. A capacidade de processamento pode ser melhorada controlando o número de consumidores. Embora este método melhore o desempenho, a complexidade também aumentará. Todos precisam escolher de acordo com sua situação real.
 
-关于业务架构的设计，到此告一段落，接下来我们来看系统架构。
+Sobre o design da arquitetura de negócios, paramos por aqui. Em seguida, vamos ver a arquitetura do sistema.
 
-### 系统架构
+### Arquitetura de Sistema
 
-系统结构主要包含，如何将业务架构映射过来，以及输出对应输入参数、输出参数的说明。由于输入、输出针对各自业务来确定的，而且没有什么难度，我们这里就只说如何将业务架构映射到系统架构，以及系统架构中最核心的Redis数据结构选择以及存储的数据结构设计。
+A estrutura do sistema inclui principalmente como mapear a arquitetura de negócios, bem como a explicação dos parâmetros de entrada e saída correspondentes. Como a entrada e a saída são determinadas de acordo com seus respectivos negócios e não há dificuldade, aqui falaremos apenas sobre como mapear a arquitetura de negócios para a arquitetura do sistema, bem como a escolha da estrutura de dados Redis mais central na arquitetura do sistema e o design da estrutura de dados armazenada.
 
-#### 代码结构
+#### Estrutura do Código
 
-下面的代码目录是按照 `Golang` 来进行设计的。我们来看看如何将上面的业务架构映射到代码层面来。
+O diretório de código abaixo é projetado de acordo com `Golang`. Vamos ver como mapear a arquitetura de negócios acima para o nível do código.
 
 ```golang
 ├── addproducts.go
@@ -339,62 +339,62 @@ func (h *RequestChain) SetNextHandler(in *RequestChain) *RequestChain {
 └── repo
 ```
 
-外层有 `entity`、`event`、`facade`、`repo`这四个目录，职责如下：
+Existem quatro diretórios na camada externa: `entity`, `event`, `facade`, `repo`. As responsabilidades são as seguintes:
 
-**entity**: 存放的是我们前面分析的购物领域的三个实体；所有主要的操作都在这三个实体上；
+**entity**: Armazena as três entidades do domínio de compras que analisamos anteriormente; todas as principais operações estão nessas três entidades;
 
-**event**: 这是用来处理产生的事件，比如刚刚说的如果我们提交订单采用异步的方式，那么该目录就该完成的是如何把数据发送到MQ中去；
+**event**: Isso é usado para processar eventos gerados. Por exemplo, como acabamos de dizer, se enviarmos pedidos de forma assíncrona, este diretório deve completar como enviar dados para o MQ;
 
-**facade**: 这儿目录是干嘛的呢？这主要是因为我们的服务还需要依赖像商品、营销活动这些服务，那么我们不应该在实体中直接调用它，因为第三方可能存在变动，或者有增加、减少，我们在这里进行以下简单的封装(设计模式中的门面模式)；
+**facade**: Para que serve este diretório? Isso ocorre principalmente porque nosso serviço também precisa depender de serviços como produtos e atividades de marketing. Não devemos chamá-los diretamente na entidade, porque terceiros podem mudar, ou ter adições ou reduções. Fazemos o seguinte encapsulamento simples aqui (padrão Facade nos padrões de design);
 
-**repo**: 这个目录从某种程度上可以理解为 `Model`层，在整个领域服务中，如果与持久化打交道，都通过它来完成。
+**repo**: Este diretório pode ser entendido até certo ponto como a camada `Model`. Em todo o serviço de domínio, se lidar com persistência, é feito através dele.
 
-最后外层的几个文件，就是我们所提供的领域服务，供应用层来进行调用的。
+Finalmente, os vários arquivos na camada externa são os serviços de domínio que fornecemos para a camada de aplicação chamar.
 
-> 为了保证内容的紧凑，我这里放弃了对整个微服务的目录介绍，只单独介绍了领域服务，后续会单独成文介绍下微服务的整个系统架构。
+> Para garantir a compacidade do conteúdo, abandonei a introdução do diretório de todo o microsserviço aqui e apresentei apenas o serviço de domínio separadamente. Posteriormente, escreverei um artigo separado para apresentar toda a arquitetura do sistema de microsserviços.
 
-通过上面的划分，我们完成了两件事情：
+Através da divisão acima, completamos duas coisas:
 
-1. 业务架构分析的结构在系统代码中都有映射，他们彼此体现。这样最大的好处是，保证设计与代码的一致性，看了文档你就知道对应的代码在哪里；
+1. A estrutura da análise da arquitetura de negócios tem um mapeamento no código do sistema, eles se refletem mutuamente. O maior benefício disso é garantir a consistência entre design e código. Ao ler a documentação, você sabe onde está o código correspondente;
 
-2. 每个目录各自的关注点都进行了分离，更内聚，更容易开发与维护。
+2. O foco de cada diretório é separado, mais coeso e mais fácil de desenvolver e manter.
 
-#### Redis存储
+#### Armazenamento Redis
 
-现在来看，我们选择Redis作为购物商品数据的存储，我们要解决两个问题，一是我们需要存哪些数据？二是我们用什么结构来存？
+Agora, escolhemos o Redis como armazenamento de dados de produtos de compras. Temos que resolver dois problemas: primeiro, quais dados precisamos armazenar? Segundo, qual estrutura usamos para armazenar?
 
-网络上很多写购物车的都是只保存一个商品id，真实场景是很难满足需求的。你想想，一个商品id如何记住用户选择的赠品？用户上次选择的活动？以及购买的商品渠道？
+Muitos carrinhos de compras na internet salvam apenas um id de produto. O cenário real dificilmente atende à demanda. Pense nisso, como um id de produto pode lembrar o brinde escolhido pelo usuário? A atividade escolhida pelo usuário da última vez? E o canal do produto comprado?
 
-综合比较通用的场景，我给出一个参考结构：
+Comparando cenários gerais de forma abrangente, dou uma estrutura de referência:
 
 ```golang
-// 购物车数据
+// Dados do carrinho de compras
 type ShoppingData struct {
 	Item       []*Item `json:"item"`
 	UpdateTime int64   `json:"update_time"`
 	Version    int32   `json:"version"`
 }
 
-// 单个商品item元素
+// Elemento de item de produto único
 type Item struct {
 	ItemId       string          `json:"item_id"`
-	ParentItemId string          `json:"parent_item_id,omitempty"` // 绑定的父item id
-	OrderId      string          `json:"order_id,omitempty"`       // 绑定的订单号
+	ParentItemId string          `json:"parent_item_id,omitempty"` // id do item pai vinculado
+	OrderId      string          `json:"order_id,omitempty"`       // número do pedido vinculado
 	Sku          int64           `json:"sku"`
 	Spu          int64           `json:"spu"`
 	Channel      string          `json:"channel"`
 	Num          int32           `json:"num"`
 	Status       int32           `json:"status"`
-	TTL          int32           `json:"ttl"`                     // 有效时间
-	SalePrice    float64         `json:"sale_price"`              // 记录加车时候的销售价格
-	SpecialPrice float64         `json:"special_price,omitempty"` // 指定价格加购物车
-	PostFree     bool            `json:"post_free,omitempty"`     // 是否免邮
-	Activities   []*ItemActivity `json:"activities,omitempty"`    // 参加的活动记录
+	TTL          int32           `json:"ttl"`                     // Tempo de validade
+	SalePrice    float64         `json:"sale_price"`              // Registrar preço de venda ao adicionar ao carrinho
+	SpecialPrice float64         `json:"special_price,omitempty"` // Preço especificado ao adicionar ao carrinho
+	PostFree     bool            `json:"post_free,omitempty"`     // Se é frete grátis
+	Activities   []*ItemActivity `json:"activities,omitempty"`    // Registro de atividades participadas
 	AddTime      int64           `json:"add_time"`
 	UpdateTime   int64           `json:"update_time"`
 }
 
-// 活动
+// Atividade
 type ItemActivity struct {
 	ActID    string `json:"act_id"`
 	ActType  string `json:"act_type"`
@@ -402,32 +402,32 @@ type ItemActivity struct {
 }
 ```
 
-重点说一下 `Item` 这个结构，`item_id` 这个字段是标记购物车中某个商品的唯一标记，因为我们之前说过，同一个sku由于渠道不同，那么在购物车中会是两个不同的item；接下来的 `parent_item_id` 字段是用来标记父子关系的，这里将可能存在的树结构转成了顺序结构，我们不管是父商品还是子商品，都采用顺序存储，然后通过这个字段来进行关联；有些同学可能会奇怪，为什么会存order id这个字段呢？大家关注下自己的日常业务，比如：再来一单、定金预售等，这种一定是与某个订单相关联的，不管是为了资格验证还是数据统计。剩下的字段都是一些非常常规的字段，就不在一一介绍了；
+Vamos focar na estrutura `Item`. O campo `item_id` é uma marca única para marcar um determinado produto no carrinho, porque dissemos antes que o mesmo sku, devido a canais diferentes, será dois itens diferentes no carrinho; o próximo campo `parent_item_id` é usado para marcar o relacionamento pai-filho. Aqui, a estrutura de árvore que pode existir é convertida em uma estrutura sequencial. Independentemente de ser um produto pai ou um produto filho, usamos armazenamento sequencial e depois associamos através deste campo; alguns alunos podem achar estranho, por que salvar o campo order id? Preste atenção ao seu negócio diário, por exemplo: mais um pedido, pré-venda com depósito, esse tipo deve estar associado a um pedido, seja para verificação de qualificação ou estatísticas de dados. Os campos restantes são campos muito convencionais, não vou apresentá-los um por um;
 
-> 字段的类型，大家根据自己的需要进行修改。
+> Tipo de campo, todos modificam de acordo com suas próprias necessidades.
 
-接下来该说怎么选择Redis的存储结构了，Redis常用的 `Hash Table、集合、有序集合、链表、字符串` 五种，我们一个个来分析。
+Em seguida, devemos falar sobre como escolher a estrutura de armazenamento do Redis. As cinco comumente usadas no Redis são `Hash Table, Set, Sorted Set, List, String`. Vamos analisar uma por uma.
 
-首先购车一定有一个key来标记这个购物车属于哪个用户的，为了简化，我们的key假设是：`uid:cart_type`。
+Primeiro, a compra de carro deve ter uma key para marcar a qual usuário este carrinho pertence. Para simplificar, assumimos que nossa key é: `uid:cart_type`.
 
-我们先来看如果用 `Hash Table`；我们添加时，需要用到如下命令：`HSET uid:cart_type sku ShoppingData`；看起来没问题，我们可以根据sku快速定位某个商品然后进行相关的修改等，但是注意，ShoppingData是一个json串，如果用户购物车中有非常多的商品，我们用 `HGETALL uid:cart_type` 获取到的时间复杂度是O(n)，然后代码中还需要一一反序列化，又是O(n)的复杂度。
+Vamos ver se usamos `Hash Table`; ao adicionar, precisamos usar o seguinte comando: `HSET uid:cart_type sku ShoppingData`; parece que não há problema, podemos localizar rapidamente um produto com base no sku e depois fazer modificações relacionadas, etc. Mas note que ShoppingData é uma string json. Se houver muitos produtos no carrinho do usuário, a complexidade de tempo que usamos `HGETALL uid:cart_type` para obter é O(n), e então o código precisa ser desserializado um a um, o que é outra complexidade O(n).
 
-如果用`集合`，也会遇到类似的问题，每个购物车看做一个集合，集合中的每个元素是 ShoppingData ，取到代码中依然需要逐一反序列化(反序列化是成本)，关于有序集合与链表就不在分析，大家可以按照上面的思路去尝试下问题所在。
+Se usarmos `Set`, encontraremos problemas semelhantes. Cada carrinho é visto como um conjunto, e cada elemento no conjunto é ShoppingData. Ao obter no código, ainda precisa ser desserializado um a um (desserialização é custo). Sobre conjuntos ordenados e listas, não analisarei, todos podem seguir a ideia acima para tentar encontrar o problema.
 
-看起来我们没得选，只有使用`String`，那我们来看一下`String`的契合度是什么样子。首先`SET uid:cart_type ShoppingDataArr`；我们把购物车所有的数据序列化成一个字符串存储，每次取出来的时间复杂度是O(1)，序列化、反序列化都只需要一次。看来是非常不错的选择。但是在使用中大家还是有几点需要注意。
+Parece que não temos escolha a não ser usar `String`. Vamos ver como é a adequação de `String`. Primeiro `SET uid:cart_type ShoppingDataArr`; serializamos todos os dados do carrinho em uma string para armazenamento. A complexidade de tempo para retirá-la a cada vez é O(1), e a serialização e desserialização requerem apenas uma vez. Parece ser uma escolha muito boa. Mas todos ainda precisam prestar atenção a alguns pontos no uso.
 
-1. 单个Value不能太大，要不然就会出现大key问题，所以一般购物车有上限限制，比如item不能超过多少个；
-2. 对redis的操作性能提升上来了，但是代码的就是修改单个item时的不便，必须每次读取全部然后找到对应的item进行修改；这里我们可以把从redis中的数据读取出来后，在内存中构建一个HashTable，来减少每次遍历的复杂度；
+1. Um único Value não pode ser muito grande, caso contrário, haverá problemas de big key, então geralmente o carrinho tem um limite superior, por exemplo, o item não pode exceder quantos;
+2. O desempenho da operação no redis melhorou, mas a inconveniência do código é ao modificar um único item, deve-se ler tudo a cada vez e depois encontrar o item correspondente para modificar; aqui podemos construir uma Hash Table na memória após ler os dados do redis para reduzir a complexidade de cada travessia;
 
-网上也看到很多Redis数据结构组合使用来保存购物车数据的，但是无疑增加了网络开销，相比起来还是String最经济划算。
+Também vi muitas combinações de estruturas de dados Redis na Internet para salvar dados do carrinho de compras, mas isso sem dúvida aumenta a sobrecarga da rede. Em comparação, String ainda é a mais econômica.
 
-### 总结
+### Resumo
 
-至此对于购物车的实现设计算是完结了，其中关于订单表的设计会单独放到订单模块去讲。
+Até aqui, o design de implementação do carrinho de compras está concluído. O design da tabela de pedidos será colocado separadamente no módulo de pedidos.
 
-对于整个购物车服务，虽然没有写的详细到某个具体的接口，但是分析到这一步，我相信大家心中都是有沟壑的，能够结合自己的业务去实现它。
+Para todo o serviço de carrinho de compras, embora não esteja escrito detalhadamente para uma interface específica, acredito que, ao analisar até este passo, todos tenham um plano em mente e possam combiná-lo com seu próprio negócio para implementá-lo.
 
-文中有些很有意思的地方，建议大家动手去做做看，有任何问题，我们随时交流。
+Existem alguns lugares interessantes no texto, sugiro que todos tentem fazer. Se houver algum problema, podemos nos comunicar a qualquer momento.
 
-- 改编版的责任链模式
-- Redis的分布式事务锁实现
+- Versão adaptada do padrão Chain of Responsibility
+- Implementação de bloqueio de transação distribuída Redis

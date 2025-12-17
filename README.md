@@ -1,6 +1,6 @@
-<h1 align="center">《电商设计手册 | SkrShop》</h1>
+<h1 align="center">《Manual de Design de E-commerce | SkrShop》</h1>
 
-<p align="center">Do design No code | 只设计不码码</p>
+<p align="center">Do design No code | Apenas design, sem código</p>
 
 <p align="center">
     <img src="https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-red" alt="Lisense">
@@ -12,10 +12,10 @@
     <img style="vertical-align:middle" width="60%" src="https://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/20191222164829.jpg?imageMogr2/thumbnail/1280x720!/format/webp/blur/1x0/quality/90|imageslim">
 <p>
 
-# 版权声明
-- 未经版权所有者明确授权，禁止发行本手册及其被实质上修改的版本（形式包含文章、视频、播客等任意媒体等）。 
-- 未经版权所有者事先授权，禁止将此作品及其衍生作品以标准（纸质）书籍形式发行。  
-- 未与任何第三方以任何形式合作。
+# Declaração de Direitos Autorais
+- Sem a autorização expressa do detentor dos direitos autorais, é proibida a distribuição deste manual e suas versões substancialmente modificadas (incluindo artigos, vídeos, podcasts e qualquer outra mídia).
+- Sem a autorização prévia do detentor dos direitos autorais, é proibida a distribuição desta obra e de suas obras derivadas na forma de livro padrão (papel).
+- Não há cooperação com terceiros de nenhuma forma.
 
 <p align="center">
     <img style="vertical-align:middle" width="25%" src="https://blog-1251019962.cos.ap-beijing.myqcloud.com/qiniu_img_2022/wechat-blog-qrcode.jpg?imageMogr2/thumbnail/260x260!/format/webp/blur/1x0/quality/90|imageslim">
@@ -24,11 +24,11 @@
 <p>
 
 
-# Star趋势
+# Tendência de Stars
 
 [![Stargazers over time](https://starchart.cc/skr-shop/manuals.svg?background=%23000000&axis=%23ffffff&line=%232ff76e)](https://starchart.cc/skr-shop/manuals)
 
-# 架构
+# Arquitetura
 
 <p align="center">
     <a href="https://blog-1251019962.cos.ap-beijing.myqcloud.com/skrshop%2Fskrshop.png">
@@ -36,74 +36,74 @@
     </a>
 </p>
 
-# 目录
+# Índice
 
-- [前言](http://skrshop.tech/#/)
-- [目录](http://skrshop.tech/#/guide)
-- [技术栈选型](http://skrshop.tech/#/?id=技术栈选型)
-- [代码仓库](http://skrshop.tech/#/?id=代码仓库)
-- [用户体系](/src/account/?id=用户体系)
-    + [账户服务](/src/account/?id=架构设计)
-    + [权限服务](/src/account/?id=后台权限管理)
-- [交易体系](/src/shopping/cart?id=交易体系)
-    + [购物车服务](/src/shopping/cart?id=购物车服务)
-    + [购物车架构](/src/shopping/cart?id=购物车架构)
-    + [订单模块](/src/order/)
-        * [订单结算页](/src/order/checkout)
-- [营销体系](/src/promotion/?id=营销体系)
-    + 活动体系
-        * [通用抽奖工具(Glue万能胶)](/src/promotion/glue)
-    + 营销体系
-        * [秒杀服务](/src/promotion/seckill?id=秒杀服务)
-        * [优惠券服务](/src/promotion/coupon?id=优惠券服务)
-        * 积分服务
-- [基础服务](/src/base/)
-    + [商品体系(Temporal万物)](/src/shopping/product?id=商品系统)
-    + [支付体系](/src/trade/)
-        * [常见第三方支付流程](/src/trade/?id=常见第三方支付流程)
-        * [支付系统设计](/src/trade/?id=支付系统设计)
-        * 收银台
-    + 搜索服务
-        * [电商搜索业务介绍](/src/base/search/business)
-        * [由浅到深，入门搜索原理](/src/base/search/tech)
-    + 接口静态化服务
-    + 上传服务
-    + 消息服务
-        * 短信
-        * 邮件
-        * 微信模板消息
-        * 站内信
-- [仓储系统](http://skrshop.tech/#/src/warehouse/)
-    + 地址服务
-- [物流系统](http://skrshop.tech/#/src/express/)
-- [售后服务](http://skrshop.tech/#/src/aftersale/)
+- [Prefácio](http://skrshop.tech/#/)
+- [Índice](http://skrshop.tech/#/guide)
+- [Seleção de Stack Tecnológico](http://skrshop.tech/#/?id=seleção-de-stack-tecnológico)
+- [Repositório de Código](http://skrshop.tech/#/?id=repositório-de-código)
+- [Sistema de Usuários](/src/account/?id=sistema-de-usuários)
+    + [Serviço de Contas](/src/account/?id=design-de-arquitetura)
+    + [Serviço de Permissões](/src/account/?id=gestão-de-permissões-de-backend)
+- [Sistema de Compras](/src/shopping/cart?id=sistema-de-compras)
+    + [Serviço de Carrinho de Compras](/src/shopping/cart?id=serviço-de-carrinho-de-compras)
+    + [Arquitetura do Carrinho de Compras](/src/shopping/cart?id=arquitetura-do-carrinho-de-compras)
+    + [Módulo de Pedidos](/src/order/)
+        * [Página de Checkout de Pedidos](/src/order/checkout)
+- [Sistema de Marketing](/src/promotion/?id=sistema-de-marketing)
+    + Sistema de Atividades
+        * [Ferramenta de Sorteio Universal (Glue/Cola Tudo)](/src/promotion/glue)
+    + Sistema de Vendas
+        * [Serviço de Seckill (Oferta Relâmpago)](/src/promotion/seckill?id=serviço-de-seckill-oferta-relâmpago)
+        * [Serviço de Cupons](/src/promotion/coupon?id=serviço-de-cupons)
+        * Serviço de Pontos
+- [Serviços Básicos](/src/base/)
+    + [Sistema de Produtos (Temporal/Tudo)](/src/shopping/product?id=sistema-de-produtos)
+    + [Sistema de Pagamentos](/src/trade/)
+        * [Fluxo Comum de Pagamento de Terceiros](/src/trade/?id=fluxo-comum-de-pagamento-de-terceiros)
+        * [Design do Sistema de Pagamento](/src/trade/?id=design-do-sistema-de-pagamento)
+        * Caixa (Cashier)
+    + Serviço de Busca
+        * [Introdução ao Negócio de Busca em E-commerce](/src/base/search/business)
+        * [Do Raso ao Fundo, Introdução aos Princípios de Busca](/src/base/search/tech)
+    + Serviço de Estática de Interface
+    + Serviço de Upload
+    + Serviço de Mensagens
+        * SMS
+        * E-mail
+        * Mensagens de Modelo WeChat
+        * Mensagens Internas do Site
+- [Sistema de Armazenamento](http://skrshop.tech/#/src/warehouse/)
+    + Serviço de Endereços
+- [Sistema de Logística](http://skrshop.tech/#/src/express/)
+- [Serviço de Pós-venda](http://skrshop.tech/#/src/aftersale/)
 
-# 前言
+# Prefácio
 
-一直从事互联网电商开发三年多的时间了，回头想想却对整个业务流程不是很了解，说出去很是惭愧。但是身处互联网电商的环境中，或多或少接触了其中的各个业务，其次周边还有很多从事电商的同事和朋友，这都是资源。于是，我决定和我的同事、盆友们、甚至还有你们去梳理整个流程并分享出来，谈不上结果要做的多么好，至少在每一个我们有能力去做好的地方，一定会细致入微。
+Trabalho com desenvolvimento de e-commerce há mais de três anos. Olhando para trás, percebo que não entendo muito bem todo o fluxo de negócios, o que é vergonhoso de admitir. Mas, estando no ambiente de e-commerce, tive contato com vários negócios em maior ou menor grau. Além disso, tenho muitos colegas e amigos que trabalham com e-commerce, e isso são recursos valiosos. Então, decidi organizar e compartilhar todo o processo com meus colegas, amigos e até com vocês. Não prometo que o resultado será perfeito, mas garanto que seremos meticulosos em cada parte que tivermos capacidade de fazer bem.
 
-除此之外，同时为了满足我们自身在工作中可能得不到的技术满足感，我们在做整个系统设计的过程中，会去使用我们最想用的技术栈。技术栈这一点我们借助docker去实现，所以最终的结果：一方面我们掌握了业务的东西，另一方面又得到了技术上的满足感，二者兼得。
+Além disso, para satisfazer nossa realização técnica que talvez não consigamos no trabalho, usaremos a stack tecnológica que mais desejamos durante o design de todo o sistema. Realizaremos essa stack tecnológica com a ajuda do Docker. O resultado final: por um lado, dominamos o negócio e, por outro, obtemos satisfação técnica. O melhor dos dois mundos.
 
-最后，出于时间的考虑，我们提出了一个想法**Do design No code**。**【只设计不码码】** 这句话的意思：最终我们设计出来整个系统的数据模型，接口文档，甚至交互过程，以及环境部署等，但是最后我们却不写代码。是吧？如果这样了写代码还有什么意义。当然，也不全是这样，出于时间的考虑当然也会用代码实现出来的，说不定最后正是对面的你去实现的。
+Por fim, considerando o tempo, propusemos uma ideia: **Do design No code**. **【Apenas design, sem código】** O que isso significa: no final, projetaremos o modelo de dados de todo o sistema, a documentação da API, os processos de interação e até a implantação do ambiente, mas não escreveremos o código. Certo? Se fizéssemos isso, qual seria o sentido de escrever código? Claro, não é exatamente assim. Considerando o tempo, é claro que também implementaremos em código. Quem sabe, talvez seja você aí do outro lado quem vai implementar.
 
-其次，这些内容肯定有考虑不全面或者在上规模的业务中存在更复杂的地方，欢迎指出，我们也希望学习和分享您的经验。
+Além disso, este conteúdo certamente pode não ser abrangente ou pode haver complexidades maiores em negócios de grande escala. Sinta-se à vontade para apontar falhas; também queremos aprender e compartilhar suas experiências.
 
-# 技术栈选型
+# Seleção de Stack Tecnológico
 
 ```
-- 基础环境
+- Ambiente Básico
     + k8s
     + docker
-- 存储
+- Armazenamento
     + mysql
     + redis
         * codis
-        * redis主从
-- queue
+        * redis master-slave
+- queue (filas)
     + kafka
     + rocketmq
     + rabbitmq
-- gw
+- gw (gateway)
     + kong
     + zuul
 - webserver
@@ -117,33 +117,33 @@
 - rpc
     + grpc
     + thrift
-- 基础能力
-    + 监控
+- Capacidades Básicas
+    + Monitoramento
         * zipkin
         * elk
         * falcon
-    + 服务发现
+    + Descoberta de Serviço
         * zookeeper
         * etcd
-    + 持续集成
+    + Integração Contínua
         * ci/cd
-- 搜索
+- Busca
     + es
     + solr
 ```
 
-# 代码仓库
+# Repositório de Código
 
-请您耐心等待...
+Por favor, aguarde pacientemente...
 
-# Skr Shop项目成员简介
+# Introdução aos Membros do Projeto Skr Shop
 
-排名不分先后，字典序
+A ordem não implica classificação, ordem de dicionário.
 
-昵称|简介|个人博客
+Apelido|Introdução|Blog Pessoal
 --------|--------|--------
-AStraw|研究生创业者|公众号“稻草人生”
-大愚Dayu|国内大多人使用的PHP第三方支付聚合项目[Payment](https://github.com/helei112g/payment)作者，创过业|[大愚Talk](http://dayutalk.cn/)
-lwhcv|曾就职于百度/融360|--------
-TIGERB|PHP框架[EasyPHP](http://easy-php.tigerb.cn/#/)作者| [TIGERB的技术博客](http://tigerb.cn)
-Veaer|宇宙无敌风火轮全干工程师| [Veaer](http://veaer.com)
+AStraw|Empreendedor e pós-graduando|Conta pública "Vida de Palha"
+Dayu|Autor do projeto de agregação de pagamentos de terceiros em PHP [Payment](https://github.com/helei112g/payment) mais usado na China, empreendedor|[Dayu Talk](http://dayutalk.cn/)
+lwhcv|Trabalhou no Baidu/Rong360|--------
+TIGERB|Autor do framework PHP [EasyPHP](http://easy-php.tigerb.cn/#/)| [Blog Técnico do TIGERB](http://tigerb.cn)
+Veaer|Engenheiro Full-stack Invencível do Universo| [Veaer](http://veaer.com)
